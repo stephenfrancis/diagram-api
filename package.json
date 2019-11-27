@@ -1,0 +1,38 @@
+{
+  "name": "diagram-api",
+  "version": "0.0.1",
+  "main": "./dist/index.min.js",
+  "description": "Object Model for Diagrams",
+  "scripts": {
+    "build": "npx parcel build src/main/Entry.ts -d dist --target node --cache-dir build/cache --out-file index.min.js ",
+    "clean": "rm -f -r build/*",
+    "example": "src/config/run_example.sh",
+    "test": "npx jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:stephenfrancis/diagram-api"
+  },
+  "author": "stephen.d.francis@gmail.com",
+  "license": "Apache-2.0",
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "__tests__/.*\\.(ts)$"
+  },
+  "dependencies": {
+    "@types/jest": "^24.0.19",
+    "@types/node": "^9.6.52",
+    "jest": "^24",
+    "loglevel": "^1.6.4",
+    "parcel-bundler": "^1.12.4",
+    "ts-jest": "^24.1.0",
+    "ts-loader": "^4.2.0",
+    "typescript": "^2.8.3"
+  }
+}

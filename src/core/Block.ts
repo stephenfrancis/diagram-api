@@ -1,0 +1,185 @@
+
+import Geom from "geom-api";
+import SVG from "svg-api";
+import Connector from "./Connector";
+import Domain from "./Domain";
+
+const DEFAULT_HEIGHT: number =  24;
+const DEFAULT_WIDTH : number = 120;
+
+export default class Block {
+  private centre: Geom.Point;
+  private connectors: Connector[];
+  private height?: number;
+  private hover_text: string;
+  private link_url: string;
+  private name: string;
+  private width?: number;
+
+
+  constructor(name: string, x_pos: number, y_pos: number) {
+    this.connectors = [];
+    this.centre = new Geom.Point(x_pos, y_pos);
+    this.name = name;
+  }
+
+
+  public addConnector(to: Block, from_dir?: Geom.Direction, to_dir?: Geom.Direction): Connector {
+    const conn: Connector = new Connector(this, to, from_dir, to_dir);
+    this.connectors.push(conn);
+    return conn;
+  }
+
+
+  public copy(new_d: Domain): Block {
+    const new_b: Block = new_d.addBlock(this.getName(), this.getCentre().getX(), this.getCentre().getY());
+    new_b.setHoverText(this.getHoverText());
+    new_b.setLink(this.getLink());
+    return new_b;
+  }
+
+
+  public draw(diagram: SVG.Diagram, block_styleset?: SVG.StyleSet, connector_styleset?: SVG.StyleSet): SVG.Group {
+    const group = diagram.main.addGroup(
+      block_styleset,
+      this.centre.getX() - (this.getWidth()  / 2),
+      this.centre.getY() - (this.getHeight() / 2)
+    );
+    group.addRectangle(0, 0, this.getWidth(), this.getHeight());
+    group.addText(0, 0, this.getName());
+    this.getConnectors().forEach((conn: Connector) => {
+      conn.draw(diagram, connector_styleset);
+    });
+    return group;
+  }
+
+
+  public getAnchorPoint(dir: Geom.Direction): Geom.Point {
+    const point: Geom.Point = new Geom.Point(
+      this.centre.getX() + (this.getWidth()  * dir.getAnchorPointFractionX()),
+      this.centre.getY() + (this.getHeight() * dir.getAnchorPointFractionY())
+    );
+    return point;
+  }
+
+
+  public getCentre(): Geom.Point {
+    return this.centre;
+  }
+
+
+  public getConnectors(): Connector[] {
+    return this.connectors;
+  }
+
+
+  public getHeight(): number {
+    return typeof this.height === "number" ? this.height : DEFAULT_HEIGHT;
+  }
+
+
+  public getHoverText(): string {
+    return this.hover_text;
+  }
+
+
+  public getLink(): string {
+    return this.link_url;
+  }
+
+
+  public getMaxX(): number {
+    let out: number = this.getCentre().getX() + (this.getWidth() / 2);
+    const checkCoord = (point: Geom.Point) => {
+      if (point.getX() > out) {
+        out = point.getX();
+      }
+    };
+    this.connectors.forEach((connector: Connector) => {
+      connector.forEachLineSegment((line: Geom.LineSegment) => {
+        checkCoord(line.getFrom());
+        checkCoord(line.getTo());
+      });
+    });
+    return out;
+  }
+
+
+  public getMaxY(): number {
+    let out: number = this.getCentre().getY() + (this.getHeight() / 2);
+    const checkCoord = (point: Geom.Point) => {
+      if (point.getY() > out) {
+        out = point.getY();
+      }
+    };
+    this.connectors.forEach((connector: Connector) => {
+      connector.forEachLineSegment((line: Geom.LineSegment) => {
+        checkCoord(line.getFrom());
+        checkCoord(line.getTo());
+      });
+    });
+    return out;
+  }
+
+
+  public getName(): string {
+    return this.name;
+  }
+
+
+  public getWidth(): number {
+    return typeof this.width === "number" ? this.width : DEFAULT_WIDTH;
+  }
+
+
+  public output(): string {
+    let out = this.toString();
+    this.connectors.forEach((connector: Connector) => {
+      out += "\n  " + connector.output();
+    });
+    return out;
+  }
+
+
+  public removeConnector(index: number): void {
+    this.connectors.splice(index, 1);
+  }
+
+
+  public reset(): void {
+    this.connectors.forEach((conn: Connector) => {
+      conn.reset();
+    });
+  }
+
+
+  public setCentre(point: Geom.Point): void {
+    this.centre = point;
+  }
+
+
+  public setHeight(arg: number): void {
+    this.height = arg;
+  }
+
+
+  public setHoverText(hover_text: string): void {
+    this.hover_text = hover_text;
+  }
+
+
+  public setLink(link_url: string) {
+    this.link_url = link_url;
+  }
+
+
+  public setWidth(arg: number): void {
+    this.width = arg;
+  }
+
+
+  public toString(): string {
+    return `<${this.name}> at ${this.centre}`;
+  }
+
+}
