@@ -1,6 +1,6 @@
 
-import Geom from "geom-api";
-import SVG from "svg-api";
+import * as Geom from "geom-api";
+import * as SVG from "svg-api";
 import Connector from "./Connector";
 import Domain from "./Domain";
 
@@ -42,11 +42,13 @@ export default class Block {
   public draw(diagram: SVG.Diagram, block_styleset?: SVG.StyleSet, connector_styleset?: SVG.StyleSet): SVG.Group {
     const group = diagram.main.addGroup(
       block_styleset,
-      this.centre.getX() - (this.getWidth()  / 2),
-      this.centre.getY() - (this.getHeight() / 2)
+      // this.centre.getX() - (this.getWidth()  / 2),
+      // this.centre.getY() - (this.getHeight() / 2)
     );
-    group.addRectangle(0, 0, this.getWidth(), this.getHeight());
-    group.addText(0, 0, this.getName());
+    // group.addRectangle(0, 0, this.getWidth(), this.getHeight());
+    // group.addText(0, 0, this.getName());
+    group.addRectangle(this.centre.getX(), this.centre.getY(), this.getWidth(), this.getHeight());
+    group.addText(this.centre.getX(), this.centre.getY(), this.getName());
     this.getConnectors().forEach((conn: Connector) => {
       conn.draw(diagram, connector_styleset);
     });

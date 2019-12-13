@@ -1,5 +1,5 @@
 
-import SVG from "svg-api";
+import * as SVG from "svg-api";
 
 export type ArrowheadStyle = "none" | "basic";
 

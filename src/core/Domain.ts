@@ -1,5 +1,5 @@
 
-import SVG from "svg-api";
+import * as SVG from "svg-api";
 import Block from "./Block";
 import Connector from "./Connector";
 
@@ -28,6 +28,7 @@ export default class Domain {
 
 
   private addBlockToDomain(block: Block): void {
+    const name: string = block.getName();
     if (this.state !== State.AddingData) {
       throw new Error(`addBlock() can only be used when in AddingData state`);
     }

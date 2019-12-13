@@ -1,0 +1,17 @@
+
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "lib" : [
+      "es2015",
+      "dom"
+    ],
+    "module": "commonjs",
+    "outDir": "../build/",
+    "target": "es5",
+  },
+  "exclude": [
+    "__tests__",
+    "../node_modules",
+  ],
+}

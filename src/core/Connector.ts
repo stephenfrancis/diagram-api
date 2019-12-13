@@ -1,6 +1,6 @@
 
-import Geom from "geom-api";
-import SVG from "svg-api";
+import * as Geom from "geom-api";
+import * as SVG from "svg-api";
 import Arrowhead from "./Arrowhead";
 import Block from "./Block";
 import Domain from "./Domain";
