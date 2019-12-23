@@ -17,14 +17,24 @@ export default class Block {
   private width?: number;
 
 
-  constructor(name: string, x_pos: number, y_pos: number) {
+  constructor(name: string, x_pos?: number, y_pos?: number) {
     this.connectors = [];
-    this.centre = new Geom.Point(x_pos, y_pos);
     this.name = name;
+    if (typeof x_pos === "number" && typeof y_pos === "number") {
+      this.centre = new Geom.Point(x_pos, y_pos);
+    } else if (typeof x_pos === "number" || typeof y_pos === "number") {
+      throw new Error(`either provide both x (${x_pos}) and y (${y_pos}), as numbers, or neither`);
+    }
   }
 
 
-  public addConnector(to: Block, from_dir?: Geom.Direction, to_dir?: Geom.Direction): Connector {
+  public addConnector(to: Block, from_dir?: Geom.Direction | string, to_dir?: Geom.Direction | string): Connector {
+    if (typeof from_dir === "string") {
+      from_dir = Geom.Direction.get(from_dir);
+    }
+    if (typeof   to_dir === "string") {
+        to_dir = Geom.Direction.get(  to_dir);
+    }
     const conn: Connector = new Connector(this, to, from_dir, to_dir);
     this.connectors.push(conn);
     return conn;
@@ -48,7 +58,7 @@ export default class Block {
     // group.addRectangle(0, 0, this.getWidth(), this.getHeight());
     // group.addText(0, 0, this.getName());
     group.addRectangle(this.centre.getX(), this.centre.getY(), this.getWidth(), this.getHeight());
-    group.addText(this.centre.getX(), this.centre.getY(), this.getName());
+    group.addTextBox(this.centre.getX(), this.centre.getY(), this.getName(), this.getWidth());
     this.getConnectors().forEach((conn: Connector) => {
       conn.draw(diagram, connector_styleset);
     });
@@ -56,7 +66,10 @@ export default class Block {
   }
 
 
-  public getAnchorPoint(dir: Geom.Direction): Geom.Point {
+  public getAnchorPoint(dir: Geom.Direction | string): Geom.Point {
+    if (typeof dir === "string") {
+      dir = Geom.Direction.get(dir);
+    }
     const point: Geom.Point = new Geom.Point(
       this.centre.getX() + (this.getWidth()  * dir.getAnchorPointFractionX()),
       this.centre.getY() + (this.getHeight() * dir.getAnchorPointFractionY())

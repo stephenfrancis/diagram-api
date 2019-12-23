@@ -14,7 +14,7 @@ const c  = b1.addConnector(b2, "E", "N");
 // c.addPathPoint(250,  50);
 // c.addPathPoint(250, 150 - (b2.getHeight() / 2));
 
-const layout = new LayoutConnectors(1);
+const layout = new LayoutConnectors(5);
 layout.beginDomain(d);
 while (layout.iterate());
 

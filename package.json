@@ -1,11 +1,14 @@
 {
   "name": "diagram-api",
   "version": "0.0.1",
-  "main": "./dist/index.min.js",
+  "main_parcel": "./dist/index.min.js",
+  "main": "./build/main/Entry.js",
+  "types": "./src/main/Entry.ts",
   "description": "Object Model for Diagrams",
   "scripts": {
     "build": "npx parcel build src/main/Entry.ts -d dist --target node --cache-dir build/cache --out-file index.min.js ",
     "clean": "rm -f -r build/*",
+    "compile": "bash -c 'cd src; tsc'",
     "example": "src/config/run_example.sh",
     "test": "npx jest"
   },

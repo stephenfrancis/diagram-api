@@ -20,7 +20,7 @@ export default class Domain {
   }
 
 
-  public addBlock(name: string, x_pos: number, y_pos: number): Block {
+  public addBlock(name: string, x_pos?: number, y_pos?: number): Block {
     const block: Block = new Block(name, x_pos, y_pos);
     this.addBlockToDomain(block);
     return block;

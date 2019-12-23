@@ -1,5 +1,5 @@
 
-import Geom from "geom-api";
+import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Domain from "../core/Domain";
 import Connector from "../core/Connector";
@@ -37,7 +37,7 @@ export default class FinishConnectors {
       const to_anchor: Geom.Point = connector.getTo().getAnchorPoint(to_dir);
       const v: Geom.Vector = Geom.Vector.between(to_anchor, last_line.getTo());
       last_line.setTo(to_anchor);
-      last_line.setArrowheadBearingTo(v.getBearing());
+      // last_line.setArrowheadBearingTo(v.getBearing());
     }
   }
 

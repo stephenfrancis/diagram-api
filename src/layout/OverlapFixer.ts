@@ -1,5 +1,5 @@
 
-import Geom from "geom-api";
+import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Domain from "../core/Domain";
 import ILayout from "./ILayout";

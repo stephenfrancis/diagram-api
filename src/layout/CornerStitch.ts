@@ -1,21 +1,21 @@
 
-import Geom from "geom-api";
+import * as Geom from "geom-api";
 import Block from "../core/Block";
 
 
 export default class CornerStitch  {
   private all_tiles: Tile[];
-  private total_area: Area;
+  private total_area: Geom.Area;
   private first_tile: Tile;
 
   constructor(bottom_right: Geom.Point) {
     this.all_tiles = [];
-    this.total_area = new Area(new Geom.Point(0, 0), bottom_right);
+    this.total_area = new Geom.Area(new Geom.Point(0, 0), bottom_right);
     this.first_tile = this.addTile(this.total_area);
   }
 
 
-  public addTile(area: Area, block?: Block): Tile {
+  public addTile(area: Geom.Area, block?: Block): Tile {
     const tile: Tile = new Tile(area, block);
     this.all_tiles.push(tile);
     return tile;
@@ -51,7 +51,7 @@ export default class CornerStitch  {
   }
 
 
-  public getArea(): Area {
+  public getArea(): Geom.Area {
     return this.total_area;
   }
 
@@ -69,59 +69,8 @@ export default class CornerStitch  {
 }
 
 
-export class Area {
-  private bottom_right: Geom.Point;
-  private top_left: Geom.Point;
-
-  constructor(top_left: Geom.Point, bottom_right?: Geom.Point) {
-    this.top_left = top_left;
-    this.bottom_right = bottom_right;
-  }
-
-
-  public contains(point: Geom.Point): boolean {
-    return (this.top_left    .getX() <= point.getX())
-      &&   (this.top_left    .getY() <= point.getY())
-      &&   (this.bottom_right.getX() >= point.getX())
-      &&   (this.bottom_right.getY() >= point.getY());
-  }
-
-
-  public getBottomRight(): Geom.Point {
-    return this.bottom_right;
-  }
-
-
-  public getTopLeft(): Geom.Point {
-    return this.top_left;
-  }
-
-
-  public isContainedBy(area: Area): boolean {
-    return (this.top_left    .getX() >= area.getTopLeft()    .getX())
-      &&   (this.top_left    .getY() >= area.getTopLeft()    .getY())
-      &&   (this.bottom_right.getX() <= area.getBottomRight().getX())
-      &&   (this.bottom_right.getY() <= area.getBottomRight().getY());
-  }
-
-
-  public overlaps(area: Area): boolean {
-    return ((this.top_left    .getX() <= area.getBottomRight().getX())
-        ||  (area.getTopLeft().getX() <= this.bottom_right    .getX()))
-      &&   ((this.top_left    .getY() <= area.getBottomRight().getY())
-        ||  (area.getTopLeft().getY() <= this.bottom_right    .getY()));
-  }
-
-
-  public toString(): string {
-    return `${this.getTopLeft()} / ${this.getBottomRight()}`;
-  }
-
-}
-
-
 export class Tile {
-  private area: Area;
+  private area: Geom.Area;
   private block: Block;
   private tl: Tile;
   private tr: Tile;
@@ -132,7 +81,7 @@ export class Tile {
   private lb: Tile;
   private rb: Tile;
 
-  constructor(area: Area, block?: Block) {
+  constructor(area: Geom.Area, block?: Block) {
     this.area = area;
     this.block = block;
   }
@@ -222,7 +171,7 @@ export class Tile {
   }
 
 
-  public getArea(): Area {
+  public getArea(): Geom.Area {
     return this.area;
   }
 
@@ -251,7 +200,7 @@ export class Tile {
     return this.area.getTopLeft().getY();
   }
 
-  public setArea(area: Area): void {
+  public setArea(area: Geom.Area): void {
     this.area = area;
   }
 

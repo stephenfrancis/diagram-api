@@ -71,9 +71,7 @@ export default class Connector {
     this.forEachLineSegment((line: Geom.LineSegment) => {
       new_c.addLineSegment(new Geom.LineSegment(
         line.getFrom(),
-        line.getTo(),
-        line.getArrowheadBearingFrom(),
-        line.getArrowheadBearingTo()
+        line.getTo()
       ));
     });
     return new_c;
