@@ -1,7 +1,4 @@
-
-
 import BellmanFord from "../../layout/BellmanFord";
-
 
 test("basic", () => {
   const bf = new BellmanFord();
@@ -16,9 +13,9 @@ test("basic", () => {
   // const output = bf.outputBlocks();
   // console.log(JSON.stringify(bf.outputBlocks()));
   expect(bf.getVertex("Author.x").getDistance()).toBe(-2);
-  expect(bf.getVertex("Author.y").getDistance()).toBe( 0);
+  expect(bf.getVertex("Author.y").getDistance()).toBe(0);
   expect(bf.getVertex("Paper.x").getDistance()).toBe(-1);
-  expect(bf.getVertex("Paper.y").getDistance()).toBe( 0);
+  expect(bf.getVertex("Paper.y").getDistance()).toBe(0);
   expect(bf.getVertex("Reviewer.x").getDistance()).toBe(0);
   expect(bf.getVertex("Reviewer.y").getDistance()).toBe(0);
   expect(bf.getVertex("Conference.x").getDistance()).toBe(-1);

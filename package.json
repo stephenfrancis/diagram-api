@@ -1,12 +1,11 @@
 {
   "name": "diagram-api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main_parcel": "./dist/index.min.js",
   "main": "./build/main/Entry.js",
   "types": "./src/main/Entry.ts",
   "description": "Object Model for Diagrams",
   "scripts": {
-    "build": "npx parcel build src/main/Entry.ts -d dist --target node --cache-dir build/cache --out-file index.min.js ",
     "clean": "rm -f -r build/*",
     "compile": "bash -c 'cd src; tsc'",
     "example": "src/config/run_example.sh",
@@ -24,20 +23,26 @@
       "js"
     ],
     "transform": {
-      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      "\\.(ts|tsx)$": "ts-jest"
     },
-    "testRegex": "__tests__/.*\\.(ts)$"
+    "testRegex": "__tests__/.*\\.(ts)$",
+    "globals": {
+      "ts-jest": {
+        "diagnostics": {
+          "ignoreCodes": [
+            151001
+          ]
+        }
+      }
+    }
   },
   "dependencies": {
-    "@types/jest": "^24.0.19",
-    "@types/node": "^9.6.52",
+    "@types/jest": "^26.0",
+    "@types/node": "^15.12",
     "geom-api": "https://github.com/stephenfrancis/geom-api.git",
-    "jest": "^24",
-    "loglevel": "^1.6.4",
-    "parcel-bundler": "^1.12.4",
+    "jest": "^27.0",
     "svg-api": "https://github.com/stephenfrancis/svg-api.git",
-    "ts-jest": "^24.1.0",
-    "ts-loader": "^4.2.0",
-    "typescript": "^2.8.3"
+    "ts-jest": "^27.0",
+    "typescript": "^4.3"
   }
 }

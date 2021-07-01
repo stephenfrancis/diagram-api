@@ -1,4 +1,3 @@
-
 import * as SVG from "svg-api";
 import Block from "./Block";
 import Connector from "./Connector";
@@ -19,13 +18,11 @@ export default class Domain {
     this.state = State.AddingData;
   }
 
-
   public addBlock(name: string, x_pos?: number, y_pos?: number): Block {
     const block: Block = new Block(name, x_pos, y_pos);
     this.addBlockToDomain(block);
     return block;
   }
-
 
   private addBlockToDomain(block: Block): void {
     const name: string = block.getName();
@@ -33,11 +30,12 @@ export default class Domain {
       throw new Error(`addBlock() can only be used when in AddingData state`);
     }
     if (this.blocks[name]) {
-      throw new Error(`a block with name ${name} already exists in this diagram`);
+      throw new Error(
+        `a block with name ${name} already exists in this diagram`
+      );
     }
     this.blocks[name] = block;
   }
-
 
   public copy(): Domain {
     const new_d: Domain = new Domain();
@@ -55,8 +53,10 @@ export default class Domain {
     return new_d;
   }
 
-
-  public draw(block_styleset?: SVG.StyleSet, connector_styleset?: SVG.StyleSet): SVG.Diagram {
+  public draw(
+    block_styleset?: SVG.StyleSet,
+    connector_styleset?: SVG.StyleSet
+  ): SVG.Diagram {
     const diagram = new SVG.Diagram();
     this.forEachBlock((block) => {
       block.draw(diagram, block_styleset, connector_styleset);
@@ -64,23 +64,19 @@ export default class Domain {
     return diagram;
   }
 
-
   public forEachBlock(callback: (block: Block) => void): void {
     Object.keys(this.blocks).forEach((name) => {
       callback(this.blocks[name]);
     });
   }
 
-
   public getBlock(name: string): Block | null {
     return this.blocks[name];
   }
 
-
   public getBlockNames(): string[] {
     return Object.keys(this.blocks);
   }
-
 
   public getBlockThrowIfUnrecognized(name: string): Block {
     const block: Block = this.getBlock(name);
@@ -89,7 +85,6 @@ export default class Domain {
     }
     return block;
   }
-
 
   public getMaxX(): number {
     let max_x: number = Number.NEGATIVE_INFINITY;
@@ -102,7 +97,6 @@ export default class Domain {
     return max_x + 10; // allow for border and connector paths
   }
 
-
   public getMaxY(): number {
     let max_y: number = Number.NEGATIVE_INFINITY;
     this.forEachBlock((block) => {
@@ -114,28 +108,26 @@ export default class Domain {
     return max_y + 10; // allow for border and connector paths
   }
 
-
   public getTitle(): string {
     return this.title;
   }
 
-
   public output(): string {
     let out = `  ${this.getTitle()}\n  ===============\n[${this.getMaxX()}, ${this.getMaxY()}]\n`;
     this.forEachBlock((block) => {
-      out += "\n"+ block.output();
+      out += "\n" + block.output();
     });
     return out;
   }
 
-
   public removeBlock(name: string): void {
     if (this.state !== State.AddingData) {
-      throw new Error(`removeBlock() can only be used when in AddingData state`);
+      throw new Error(
+        `removeBlock() can only be used when in AddingData state`
+      );
     }
     delete this.blocks[name];
   }
-
 
   public reset(): void {
     this.forEachBlock((block: Block) => {
@@ -143,9 +135,7 @@ export default class Domain {
     });
   }
 
-
   public setTitle(title: string): void {
     this.title = title;
   }
-
 }

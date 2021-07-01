@@ -1,11 +1,10 @@
-
 import * as Geom from "geom-api";
 import * as SVG from "svg-api";
 import Connector from "./Connector";
 import Domain from "./Domain";
 
-const DEFAULT_HEIGHT: number =  24;
-const DEFAULT_WIDTH : number = 120;
+const DEFAULT_HEIGHT: number = 24;
+const DEFAULT_WIDTH: number = 120;
 
 export default class Block {
   private centre: Geom.Point;
@@ -16,95 +15,108 @@ export default class Block {
   private name: string;
   private width?: number;
 
-
   constructor(name: string, x_pos?: number, y_pos?: number) {
     this.connectors = [];
     this.name = name;
     if (typeof x_pos === "number" && typeof y_pos === "number") {
       this.centre = new Geom.Point(x_pos, y_pos);
     } else if (typeof x_pos === "number" || typeof y_pos === "number") {
-      throw new Error(`either provide both x (${x_pos}) and y (${y_pos}), as numbers, or neither`);
+      throw new Error(
+        `either provide both x (${x_pos}) and y (${y_pos}), as numbers, or neither`
+      );
     }
   }
 
-
-  public addConnector(to: Block, from_dir?: Geom.Direction | string, to_dir?: Geom.Direction | string): Connector {
+  public addConnector(
+    to: Block,
+    from_dir?: Geom.Direction | string,
+    to_dir?: Geom.Direction | string
+  ): Connector {
     if (typeof from_dir === "string") {
       from_dir = Geom.Direction.get(from_dir);
     }
-    if (typeof   to_dir === "string") {
-        to_dir = Geom.Direction.get(  to_dir);
+    if (typeof to_dir === "string") {
+      to_dir = Geom.Direction.get(to_dir);
     }
     const conn: Connector = new Connector(this, to, from_dir, to_dir);
     this.connectors.push(conn);
     return conn;
   }
 
-
   public copy(new_d: Domain): Block {
-    const new_b: Block = new_d.addBlock(this.getName(), this.getCentre().getX(), this.getCentre().getY());
+    const new_b: Block = new_d.addBlock(
+      this.getName(),
+      this.getCentre().getX(),
+      this.getCentre().getY()
+    );
     new_b.setHoverText(this.getHoverText());
     new_b.setLink(this.getLink());
     return new_b;
   }
 
-
-  public draw(diagram: SVG.Diagram, block_styleset?: SVG.StyleSet, connector_styleset?: SVG.StyleSet): SVG.Group {
+  public draw(
+    diagram: SVG.Diagram,
+    block_styleset?: SVG.StyleSet,
+    connector_styleset?: SVG.StyleSet
+  ): SVG.Group {
     const group = diagram.main.addGroup(
-      block_styleset,
+      block_styleset
       // this.centre.getX() - (this.getWidth()  / 2),
       // this.centre.getY() - (this.getHeight() / 2)
     );
     // group.addRectangle(0, 0, this.getWidth(), this.getHeight());
     // group.addText(0, 0, this.getName());
-    group.addRectangle(this.centre.getX(), this.centre.getY(), this.getWidth(), this.getHeight());
-    group.addTextBox(this.centre.getX(), this.centre.getY(), this.getName(), this.getWidth());
+    group.addRectangle(
+      this.centre.getX(),
+      this.centre.getY(),
+      this.getWidth(),
+      this.getHeight()
+    );
+    group.addTextBox(
+      this.centre.getX(),
+      this.centre.getY(),
+      this.getName(),
+      this.getWidth()
+    );
     this.getConnectors().forEach((conn: Connector) => {
       conn.draw(diagram, connector_styleset);
     });
     return group;
   }
 
-
   public getAnchorPoint(dir: Geom.Direction | string): Geom.Point {
     if (typeof dir === "string") {
       dir = Geom.Direction.get(dir);
     }
     const point: Geom.Point = new Geom.Point(
-      this.centre.getX() + (this.getWidth()  * dir.getAnchorPointFractionX()),
-      this.centre.getY() + (this.getHeight() * dir.getAnchorPointFractionY())
+      this.centre.getX() + this.getWidth() * dir.getAnchorPointFractionX(),
+      this.centre.getY() + this.getHeight() * dir.getAnchorPointFractionY()
     );
     return point;
   }
-
 
   public getCentre(): Geom.Point {
     return this.centre;
   }
 
-
   public getConnectors(): Connector[] {
     return this.connectors;
   }
-
 
   public getHeight(): number {
     return typeof this.height === "number" ? this.height : DEFAULT_HEIGHT;
   }
 
-
   public getHoverText(): string {
     return this.hover_text;
   }
-
 
   public getLink(): string {
     return this.link_url;
   }
 
-
   public getMaxX(): number {
-    let out: number = this.getCentre().getX() + (this.getWidth() / 2);
+    let out: number = this.getCentre().getX() + this.getWidth() / 2;
     const checkCoord = (point: Geom.Point) => {
       if (point.getX() > out) {
         out = point.getX();
@@ -119,9 +131,8 @@ export default class Block {
     return out;
   }
 
-
   public getMaxY(): number {
-    let out: number = this.getCentre().getY() + (this.getHeight() / 2);
+    let out: number = this.getCentre().getY() + this.getHeight() / 2;
     const checkCoord = (point: Geom.Point) => {
       if (point.getY() > out) {
         out = point.getY();
@@ -136,16 +147,13 @@ export default class Block {
     return out;
   }
 
-
   public getName(): string {
     return this.name;
   }
 
-
   public getWidth(): number {
     return typeof this.width === "number" ? this.width : DEFAULT_WIDTH;
   }
-
 
   public output(): string {
     let out = this.toString();
@@ -155,11 +163,9 @@ export default class Block {
     return out;
   }
 
-
   public removeConnector(index: number): void {
     this.connectors.splice(index, 1);
   }
-
 
   public reset(): void {
     this.connectors.forEach((conn: Connector) => {
@@ -167,34 +173,27 @@ export default class Block {
     });
   }
 
-
   public setCentre(point: Geom.Point): void {
     this.centre = point;
   }
-
 
   public setHeight(arg: number): void {
     this.height = arg;
   }
 
-
   public setHoverText(hover_text: string): void {
     this.hover_text = hover_text;
   }
-
 
   public setLink(link_url: string) {
     this.link_url = link_url;
   }
 
-
   public setWidth(arg: number): void {
     this.width = arg;
   }
 
-
   public toString(): string {
     return `<${this.name}> at ${this.centre}`;
   }
-
 }

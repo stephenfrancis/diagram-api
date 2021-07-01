@@ -1,10 +1,8 @@
-
 import * as Geom from "geom-api";
 import * as SVG from "svg-api";
 import Arrowhead from "./Arrowhead";
 import Block from "./Block";
 import Domain from "./Domain";
-
 
 export type PathStyle = "right-angled" | "quad-bezier";
 
@@ -18,7 +16,12 @@ export default class Connector {
   private to_dir?: Geom.Direction;
   private lines: Geom.LineSegment[];
 
-  constructor(from: Block, to: Block, from_dir?: Geom.Direction, to_dir?: Geom.Direction) {
+  constructor(
+    from: Block,
+    to: Block,
+    from_dir?: Geom.Direction,
+    to_dir?: Geom.Direction
+  ) {
     this.from = from;
     this.from_dir = from_dir;
     this.to = to;
@@ -26,15 +29,16 @@ export default class Connector {
     this.lines = [];
   }
 
-
   public addLineSegment(line: Geom.LineSegment): Connector {
-    if (this.lines.length && !this.lines[this.lines.length - 1].getTo().equals(line.getFrom())) {
+    if (
+      this.lines.length &&
+      !this.lines[this.lines.length - 1].getTo().equals(line.getFrom())
+    ) {
       throw new Error("lines don't join");
     }
     this.lines.push(line);
     return this;
   }
-
 
   public addPathPoint(point: Geom.Point): Connector {
     if (this.lines.length === 0) {
@@ -43,40 +47,39 @@ export default class Connector {
     if (this.lines[this.lines.length - 1].getTo().equals(point)) {
       throw new Error("new line has no extension");
     }
-    this.addLineSegment(new Geom.LineSegment(this.lines[this.lines.length - 1].getTo(), point));
+    this.addLineSegment(
+      new Geom.LineSegment(this.lines[this.lines.length - 1].getTo(), point)
+    );
     return this;
   }
-
 
   public amendNewPosition(position: Geom.Point, fraction: number): Geom.Point {
     if (!this.from_dir) {
       return;
     }
-    const delta_x: number = this.from.getCentre().getX() * fraction * this.from_dir.getDeltaCol();
-    const delta_y: number = this.from.getCentre().getY() * fraction * this.from_dir.getDeltaRow();
+    const delta_x: number =
+      this.from.getCentre().getX() * fraction * this.from_dir.getDeltaCol();
+    const delta_y: number =
+      this.from.getCentre().getY() * fraction * this.from_dir.getDeltaRow();
     return new Geom.Point(position.getX() + delta_x, position.getY() + delta_y);
   }
 
-
   public copy(new_d: Domain): Connector {
     const new_from: Block = new_d.getBlock(this.from.getName());
-    const new_to  : Block = new_d.getBlock(this.to  .getName());
+    const new_to: Block = new_d.getBlock(this.to.getName());
     const new_c: Connector = new_from.addConnector(
       new_to,
       this.getFromDirection(),
-      this.getToDirection());
+      this.getToDirection()
+    );
     console.log(`copied connector from block ${new_from} going to ${new_to}`);
     new_c.setArrowheadStart(this.getArrowheadStart().copy());
-    new_c.setArrowheadEnd  (this.getArrowheadEnd  ().copy());
+    new_c.setArrowheadEnd(this.getArrowheadEnd().copy());
     this.forEachLineSegment((line: Geom.LineSegment) => {
-      new_c.addLineSegment(new Geom.LineSegment(
-        line.getFrom(),
-        line.getTo()
-      ));
+      new_c.addLineSegment(new Geom.LineSegment(line.getFrom(), line.getTo()));
     });
     return new_c;
   }
-
 
   public draw(diagram: SVG.Diagram, styleset?: SVG.StyleSet): SVG.Group {
     if (this.lines.length < 1) {
@@ -84,11 +87,7 @@ export default class Connector {
     }
     const offset_x: number = this.lines[0].getFrom().getX();
     const offset_y: number = this.lines[0].getFrom().getY();
-    const group = diagram.main.addGroup(
-      styleset,
-      offset_x,
-      offset_y
-    );
+    const group = diagram.main.addGroup(styleset, offset_x, offset_y);
     let prev_x: number = 0;
     let prev_y: number = 0;
     this.lines.forEach((line: Geom.LineSegment) => {
@@ -101,8 +100,7 @@ export default class Connector {
     return group;
   }
 
-
-/*
+  /*
   private drawArrowHead(to_path_point: [ number, number ], from_path_point: [ number, number ],
     style: ArrowheadStyle): string {
 
@@ -116,23 +114,21 @@ export default class Connector {
   }
 */
 
-public forEachLineSegment(callback: (line: Geom.LineSegment) => void): void {
+  public forEachLineSegment(callback: (line: Geom.LineSegment) => void): void {
     this.lines.forEach((line: Geom.LineSegment) => {
       callback(line);
     });
   }
 
-
   public getArrowheadEnd(): Arrowhead {
     return this.arrowhead_end;
   }
-
 
   public getArrowheadStart(): Arrowhead {
     return this.arrowhead_sta;
   }
 
-/*
+  /*
   public getExtremes(): Types.Extremes {
     const extremes: Types.Extremes = {
       x_min: Number.POSITIVE_INFINITY,
@@ -154,16 +150,18 @@ public forEachLineSegment(callback: (line: Geom.LineSegment) => void): void {
     return this.from;
   }
 
-
   public getFromDirection(): Geom.Direction {
     if (this.from_dir) {
       return this.from_dir;
     }
-    const v: Geom.Vector = Geom.Vector.between(this.to.getCentre(), this.from.getCentre());
+    const v: Geom.Vector = Geom.Vector.between(
+      this.to.getCentre(),
+      this.from.getCentre()
+    );
     return Geom.Direction.nearest(v.getBearing());
   }
 
-/*
+  /*
   public getMarkup(): string {
     if (this.path_points.length < 2) {
       throw new Error("connector must have at least two path points");
@@ -200,63 +198,62 @@ public forEachLineSegment(callback: (line: Geom.LineSegment) => void): void {
     return this.path_style;
   }
 
-
   public getTo(): Block {
     return this.to;
   }
-
 
   public getToDirection(): Geom.Direction {
     if (this.to_dir) {
       return this.to_dir;
     }
-    const v: Geom.Vector = Geom.Vector.between(this.to.getCentre(), this.from.getCentre());
+    const v: Geom.Vector = Geom.Vector.between(
+      this.to.getCentre(),
+      this.from.getCentre()
+    );
     return Geom.Direction.nearest(v.getBearing());
   }
-
 
   public output(): string {
     let seg: string = "";
     this.lines.forEach((line: Geom.LineSegment) => {
       seg += ", " + line.toString();
     });
-    return `${(this.from_dir || "")} to ${this.to} ${(this.to_dir || "")}${seg}`;
+    return `${this.from_dir || ""} to ${this.to} ${this.to_dir || ""}${seg}`;
   }
-
 
   public reset(): void {
     this.lines = [];
   }
 
-
   public setArrowheadEnd(arrowhead: Arrowhead): void {
     this.arrowhead_end = arrowhead;
   }
-
 
   public setArrowheadStart(arrowhead: Arrowhead): void {
     this.arrowhead_sta = arrowhead;
   }
 
-
   public setPathStyle(arg: PathStyle): void {
     this.path_style = arg;
   }
 
-
-  public shift(from: Geom.Point, dir: Geom.Direction, other_point: Geom.Point): Geom.Point {
+  public shift(
+    from: Geom.Point,
+    dir: Geom.Direction,
+    other_point: Geom.Point
+  ): Geom.Point {
     const len = 20;
     const max_x: number = Math.abs(from.getX() - other_point.getX());
     const max_y: number = Math.abs(from.getY() - other_point.getY());
     return new Geom.Point(
-      from.getX() + Math.min((len * dir.getAngleSin()), max_x / 2),
-      from.getY() - Math.min((len * dir.getAngleCos()), max_y / 2),
+      from.getX() + Math.min(len * dir.getAngleSin(), max_x / 2),
+      from.getY() - Math.min(len * dir.getAngleCos(), max_y / 2)
     );
   }
 
-
   public toString(): string {
-    return `from ${this.from} ${(this.from_dir || "")} to ${this.to} ${(this.to_dir || "")}`;
+    return `from ${this.from} ${this.from_dir || ""} to ${this.to} ${
+      this.to_dir || ""
+    }`;
   }
-
 }

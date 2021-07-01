@@ -1,15 +1,10 @@
-
 import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Domain from "../core/Domain";
 import Connector from "../core/Connector";
 
-
-
 export default class FinishConnectors {
-
   constructor() {}
-
 
   public doBlock(block: Block): void {
     block.getConnectors().forEach((connector: Connector) => {
@@ -17,10 +12,9 @@ export default class FinishConnectors {
     });
   }
 
-
   public doConnector(connector: Connector): void {
     let first_line: Geom.LineSegment = null;
-    let  last_line: Geom.LineSegment = null;
+    let last_line: Geom.LineSegment = null;
     connector.forEachLineSegment((line: Geom.LineSegment) => {
       if (!first_line) {
         first_line = line;
@@ -29,7 +23,9 @@ export default class FinishConnectors {
     });
     if (first_line) {
       const from_dir: Geom.Direction = connector.getFromDirection();
-      const from_anchor: Geom.Point = connector.getFrom().getAnchorPoint(from_dir);
+      const from_anchor: Geom.Point = connector
+        .getFrom()
+        .getAnchorPoint(from_dir);
       first_line.setFrom(from_anchor);
     }
     if (last_line) {
@@ -41,11 +37,9 @@ export default class FinishConnectors {
     }
   }
 
-
   public layoutDomain(Domain: Domain): void {
     Domain.forEachBlock((block: Block) => {
       this.doBlock(block);
     });
   }
-
 }

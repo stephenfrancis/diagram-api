@@ -1,9 +1,7 @@
-
 import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Domain from "../core/Domain";
 import ILayout from "./ILayout";
-
 
 interface Profile {
   margin_left: number;
@@ -15,7 +13,7 @@ interface Profile {
   width: number | "block";
 }
 
-const profiles: {[index:string]: Profile} = {
+const profiles: { [index: string]: Profile } = {
   svg: {
     margin_left: 15, // allow for connector paths
     margin_top: 15, // allow for connector paths
@@ -51,8 +49,8 @@ const profiles: {[index:string]: Profile} = {
     inter_block_padding_x: 2,
     inter_block_padding_y: 2,
     width: 1,
-  }
-}
+  },
+};
 
 export default class Scale implements ILayout {
   private columns: Column[];
@@ -73,31 +71,31 @@ export default class Scale implements ILayout {
     this.setProfile(profile);
   }
 
-
   private addBlock(block: Block): void {
     const x: number = block.getCentre().getX();
     const y: number = block.getCentre().getY();
     // console.log(`Scale.addBlock() adding ${block} to Col ${x} and Row ${y}`);
-    this.getRow(y)   .addBlock(block);
+    this.getRow(y).addBlock(block);
     this.getColumn(x).addBlock(block);
   }
 
-
   public addConnectors(block: Block): void {
-    block.getConnectors().forEach(connector => {
+    block.getConnectors().forEach((connector) => {
       connector.forEachLineSegment((line: Geom.LineSegment) => {
         this.addLineTerm(line, line.getFrom(), "from");
-        this.addLineTerm(line, line.getTo()  , "to");
+        this.addLineTerm(line, line.getTo(), "to");
       });
     });
   }
 
-
-  public addLineTerm(line: Geom.LineSegment, point: Geom.Point, which: "from" | "to"): void {
-    this.getRow   (point.getY()).addLineTerm(line, which);
+  public addLineTerm(
+    line: Geom.LineSegment,
+    point: Geom.Point,
+    which: "from" | "to"
+  ): void {
+    this.getRow(point.getY()).addLineTerm(line, which);
     this.getColumn(point.getX()).addLineTerm(line, which);
   }
-
 
   public beginDomain(domain: Domain): void {
     domain.forEachBlock((block: Block) => {
@@ -105,7 +103,6 @@ export default class Scale implements ILayout {
       this.addConnectors(block);
     });
   }
-
 
   private getColumn(x: number): Column {
     if (x < this.min_col) {
@@ -120,11 +117,9 @@ export default class Scale implements ILayout {
     return this.columns[x];
   }
 
-
   public getProfile(): any {
     return this.profile;
   }
-
 
   private getRow(y: number): Row {
     if (y < this.min_row) {
@@ -139,35 +134,33 @@ export default class Scale implements ILayout {
     return this.rows[y];
   }
 
-
   public iterate(): boolean {
     this.rescaleColumns();
     this.rescaleRows();
     return false;
   }
 
-
   private rescaleColumns(): void {
     let new_x: number = this.profile.margin_left;
     for (let i = this.min_col; i <= this.max_col; i += 1) {
       if (this.columns[i]) {
-        new_x += this.columns[i].rescale(new_x, this.profile.width)
-          + this.profile.inter_block_padding_x;
+        new_x +=
+          this.columns[i].rescale(new_x, this.profile.width) +
+          this.profile.inter_block_padding_x;
       }
     }
   }
-
 
   private rescaleRows(): void {
     let new_y: number = this.profile.margin_top;
     for (let i = this.min_row; i <= this.max_row; i += 1) {
       if (this.rows[i]) {
-        new_y += this.rows[i].rescale(new_y, this.profile.height)
-          + this.profile.inter_block_padding_y;
+        new_y +=
+          this.rows[i].rescale(new_y, this.profile.height) +
+          this.profile.inter_block_padding_y;
       }
     }
   }
-
 
   public setProfile(profile_id: string): void {
     this.profile = profiles[profile_id];
@@ -175,14 +168,12 @@ export default class Scale implements ILayout {
       throw new Error(`unrecognized profile: ${profile_id}`);
     }
   }
-
 }
-
 
 export class Column {
   private blocks: Block[];
   private lines_from: Geom.LineSegment[];
-  private lines_to  : Geom.LineSegment[];
+  private lines_to: Geom.LineSegment[];
   private max_width: number;
   private x: number;
 
@@ -191,7 +182,7 @@ export class Column {
     this.max_width = 0;
     this.blocks = [];
     this.lines_from = [];
-    this.lines_to   = [];
+    this.lines_to = [];
   }
 
   public addBlock(block: Block): void {
@@ -201,16 +192,13 @@ export class Column {
     }
   }
 
-
   public addLineTerm(line: Geom.LineSegment, which: "from" | "to"): void {
     this["lines_" + which].push(line);
   }
 
-
   public getMaxWidth(): number {
     return this.max_width;
   }
-
 
   public rescale(new_x: number, by: number | "block"): number {
     const old_x: number = this.x;
@@ -223,21 +211,19 @@ export class Column {
       block.setCentre(new Geom.Point(this.x, block.getCentre().getY()));
     });
     this.lines_from.forEach((line: Geom.LineSegment) => {
-      line.setFrom(new Geom.Point(this.x, line.getFrom().getY()))
+      line.setFrom(new Geom.Point(this.x, line.getFrom().getY()));
     });
-    this.lines_to  .forEach((line: Geom.LineSegment) => {
-      line.setTo  (new Geom.Point(this.x, line.getTo  ().getY()))
+    this.lines_to.forEach((line: Geom.LineSegment) => {
+      line.setTo(new Geom.Point(this.x, line.getTo().getY()));
     });
     return by;
   }
-
 }
-
 
 export class Row {
   private blocks: Block[];
   private lines_from: Geom.LineSegment[];
-  private lines_to  : Geom.LineSegment[];
+  private lines_to: Geom.LineSegment[];
   private max_height: number;
   private y: number;
 
@@ -246,9 +232,8 @@ export class Row {
     this.max_height = 0;
     this.blocks = [];
     this.lines_from = [];
-    this.lines_to   = [];
+    this.lines_to = [];
   }
-
 
   public addBlock(block: Block): void {
     this.blocks.push(block);
@@ -257,16 +242,13 @@ export class Row {
     }
   }
 
-
   public addLineTerm(line: Geom.LineSegment, which: "from" | "to"): void {
     this["lines_" + which].push(line);
   }
 
-
   public getMaxHeight(): number {
     return this.max_height;
   }
-
 
   public rescale(new_y: number, by: number | "block"): number {
     const old_y: number = this.y;
@@ -279,12 +261,11 @@ export class Row {
       block.setCentre(new Geom.Point(block.getCentre().getX(), this.y));
     });
     this.lines_from.forEach((line: Geom.LineSegment) => {
-      line.setFrom(new Geom.Point(line.getFrom().getX(), this.y))
+      line.setFrom(new Geom.Point(line.getFrom().getX(), this.y));
     });
-    this.lines_to  .forEach((line: Geom.LineSegment) => {
-      line.setTo  (new Geom.Point(line.getTo  ().getX(), this.y))
+    this.lines_to.forEach((line: Geom.LineSegment) => {
+      line.setTo(new Geom.Point(line.getTo().getX(), this.y));
     });
     return by;
   }
-
 }

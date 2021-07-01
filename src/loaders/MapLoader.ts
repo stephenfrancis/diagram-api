@@ -1,9 +1,7 @@
-
 import * as Fs from "fs";
 import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Domain from "../core/Domain";
-
 
 export default class MapLoader {
   private domain: Domain;
@@ -11,7 +9,6 @@ export default class MapLoader {
   constructor(domain: Domain) {
     this.domain = domain;
   }
-
 
   public getOrAddBlock(name: string): Block {
     name = name.trim();
@@ -22,7 +19,6 @@ export default class MapLoader {
     return block;
   }
 
-
   private isBlock(line: string, parse_state: { block?: Block }): boolean {
     let match = line.match(/^\* (.*)$/);
     if (match && match.length > 1) {
@@ -31,7 +27,6 @@ export default class MapLoader {
     }
     return false;
   }
-
 
   private isConnector(line: string, parse_state: { block?: Block }): boolean {
     let match = line.match(/^ {2}\* (N|NE|E|SE|S|SW|W|NW|U|D): (.*)$/);
@@ -50,7 +45,6 @@ export default class MapLoader {
     return false;
   }
 
-
   private isTitle(line: string, parse_state: any): boolean {
     const match = line.match(/^# (.*)/);
     if (match) {
@@ -59,19 +53,17 @@ export default class MapLoader {
     return !!match;
   }
 
-
   public parseContent(content: string) {
     this.parseLines(content.split(/\r\n|\n/));
   }
 
-
   public parseLines(lines: string[]) {
     const parse_state: {
-      inside_room: boolean,
-      block?: Block,
+      inside_room: boolean;
+      block?: Block;
     } = {
       inside_room: false,
-    }
+    };
     lines.forEach((line) => {
       let done = false;
       done = done || this.isBlock(line, parse_state);
@@ -83,17 +75,14 @@ export default class MapLoader {
     });
   }
 
-
   public readFile(filename: string) {
     const data = Fs.readFileSync(filename, {
-      encoding: "UTF-8",
+      encoding: "utf8",
     });
     this.parseContent(data);
   }
 
-
   private reportError(str: string): void {
     console.log(str); // eslint-disable-line no-console
   }
-
 }
