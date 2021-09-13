@@ -85,17 +85,15 @@ export default class Connector {
     if (this.lines.length < 1) {
       return null;
     }
-    const offset_x: number = this.lines[0].getFrom().getX();
-    const offset_y: number = this.lines[0].getFrom().getY();
-    const group = diagram.main.addGroup(styleset, offset_x, offset_y);
-    let prev_x: number = 0;
-    let prev_y: number = 0;
+    const group = diagram.main.addGroup(styleset);
+    const path = group.addPath(
+      this.lines[0].getFrom().getX(),
+      this.lines[0].getFrom().getY()
+    );
     this.lines.forEach((line: Geom.LineSegment) => {
-      const new_x: number = line.getTo().getX() - offset_x;
-      const new_y: number = line.getTo().getY() - offset_y;
-      group.addStraightLine(prev_x, prev_y, new_x, new_y);
-      prev_x = new_x;
-      prev_y = new_y;
+      const new_x: number = line.getTo().getX();
+      const new_y: number = line.getTo().getY();
+      path.lineToAbsolute(new_x, new_y);
     });
     return group;
   }

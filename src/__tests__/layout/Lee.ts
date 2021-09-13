@@ -21,15 +21,16 @@ const finishConnectors = (d: Domain) => {
 const BLOCK_STYLESET = new StyleSet({
   stroke: "green",
   "stroke-width": "1px",
-  fill: "#808080",
+  fill: "#bbb",
   "font-size": "16px",
 });
 
 const CONNECTOR_STYLESET = new StyleSet({
   stroke: "green",
-  "stroke-width": "1px",
-  fill: "#808080",
+  "stroke-width": "3px",
+  fill: "transparent",
   "font-size": "16px",
+  "stroke-linejoin": "round",
 });
 
 const writeDiagram = (d: Domain, filename: string) => {
