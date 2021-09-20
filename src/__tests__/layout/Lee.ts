@@ -1,5 +1,5 @@
 import { Direction } from "geom-api";
-import Domain from "../../core/Domain";
+import Domain, { Phase } from "../../core/Domain";
 import { FileManager, StyleSet } from "svg-api";
 import FinishConnectors from "../../layout/FinishConnectors";
 import Lee from "../../layout/Lee";
@@ -35,9 +35,11 @@ const CONNECTOR_STYLESET = new StyleSet({
 
 const writeDiagram = (d: Domain, filename: string) => {
   const s: Scale = new Scale("svg");
-  s.beginDomain(d);
-  while (s.iterate());
+  s.apply(d);
+
   finishConnectors(d);
+
+  d.setPhase(Phase.Finalized);
   const fm = new FileManager("build");
   fm.saveAsSVG(d.draw(BLOCK_STYLESET, CONNECTOR_STYLESET), filename);
 };
@@ -66,7 +68,7 @@ test("check basic diagram", () => {
   );
   expect(b3.output()).toEqual("<bottom_right> at [5, 5]");
 
-  writeDiagram(d, "lee_test_1");
+  // writeDiagram(d, "lee_test_1");
 });
 
 test("no obstructions, E -> W", () => {
@@ -75,10 +77,10 @@ test("no obstructions, E -> W", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("E"), Direction.get("W"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
   // console.log(l.output());
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -95,9 +97,9 @@ test("no obstructions, N -> S", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("S"), Direction.get("N"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -116,10 +118,10 @@ test("centre obstruction, E -> W", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("E"), Direction.get("W"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
   // console.log(l.output());
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -139,9 +141,9 @@ test("centre obstruction, N -> S", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("S"), Direction.get("N"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -159,9 +161,9 @@ test("no obstructions, W -> S", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("S"), Direction.get("W"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -179,9 +181,9 @@ test("bottom left obstruction, W -> S", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("S"), Direction.get("W"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -198,9 +200,9 @@ test("no obstructions, E -> N", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("N"), Direction.get("E"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -218,9 +220,9 @@ test("top right obstruction, E -> N", () => {
   const b3 = d.getBlock("bottom_right");
   b1.addConnector(b3, Direction.get("N"), Direction.get("E"));
 
+  d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
-  l.beginDomain(d);
-  while (l.iterate());
+  l.apply(d);
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\

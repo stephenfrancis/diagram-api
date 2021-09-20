@@ -1,8 +1,8 @@
 import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Connector from "../core/Connector";
-import Domain from "../core/Domain";
-import ILayout from "./ILayout";
+import Domain, { Phase } from "../core/Domain";
+import { NonIterativeLayout } from "./ILayout";
 
 const constraints = {
   left: {
@@ -33,19 +33,14 @@ const constraints = {
   D: { x: -1, y: 1 },
 };
 
-export default class BellmanFord implements ILayout {
-  private Domain: Domain;
+export default class BellmanFord implements NonIterativeLayout {
   private finalized: boolean;
   private vertices: { [index: string]: Vertex };
   private blocks: string[];
   private start;
 
   constructor() {
-    this.finalized = false;
-    this.vertices = {};
-    this.blocks = [];
-    this.start = new Vertex("start", 0);
-    this.vertices["start"] = this.start;
+    this.clear();
   }
 
   public addBlock(name: string) {
@@ -80,12 +75,13 @@ export default class BellmanFord implements ILayout {
     }
   }
 
-  public beginDomain(Domain: Domain) {
-    this.Domain = Domain;
-    Domain.forEachBlock((block: Block) => {
+  public apply(domain: Domain) {
+    this.throwIfFinalized();
+    domain.checkPhaseAllowed(Phase.BlockLayout);
+    domain.forEachBlock((block: Block) => {
       this.addBlock(block.getName());
     });
-    Domain.forEachBlock((block: Block) => {
+    domain.forEachBlock((block: Block) => {
       block.getConnectors().forEach((connector: Connector) => {
         this.addRelationship(
           block.getName(),
@@ -94,6 +90,8 @@ export default class BellmanFord implements ILayout {
         );
       });
     });
+    this.finalize();
+    this.setBlockPositions(domain);
   }
 
   private checkForNegativeWeightCycles(): boolean {
@@ -105,6 +103,14 @@ export default class BellmanFord implements ILayout {
       // }
     });
     return found;
+  }
+
+  public clear(): void {
+    this.finalized = false;
+    this.vertices = {};
+    this.blocks = [];
+    this.start = new Vertex("start", 0);
+    this.vertices["start"] = this.start;
   }
 
   private finalize(): void {
@@ -123,20 +129,6 @@ export default class BellmanFord implements ILayout {
       this.finalize();
     }
     return this.vertices[name];
-  }
-
-  public iterate(): boolean {
-    this.finalize();
-    this.Domain.forEachBlock((block: Block) => {
-      const name: string = block.getName();
-      block.setCentre(
-        new Geom.Point(
-          this.vertices[name + ".x"].getDistance(),
-          this.vertices[name + ".y"].getDistance()
-        )
-      );
-    });
-    return false;
   }
 
   public output() {
@@ -202,6 +194,18 @@ export default class BellmanFord implements ILayout {
   //  for each edge (u, v) with weight w in edges:
   //      if distance[u] + w < distance[v]:
   //          error "Graph contains a negative-weight cycle"
+
+  private setBlockPositions(domain: Domain): void {
+    domain.forEachBlock((block: Block) => {
+      const name: string = block.getName();
+      block.setCentre(
+        new Geom.Point(
+          this.vertices[name + ".x"].getDistance(),
+          this.vertices[name + ".y"].getDistance()
+        )
+      );
+    });
+  }
 
   private throwIfFinalized() {
     if (this.finalized) {

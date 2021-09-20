@@ -2,39 +2,54 @@ import * as SVG from "svg-api";
 import Block from "./Block";
 import Connector from "./Connector";
 
-export enum State {
-  AddingData,
-  BlockLayout,
-  ConnectorLayout,
+export enum Phase {
+  AddingData = "ADDING-DATA",
+  BlockLayout = "BLOCK-LAYOUT",
+  ConnectorLayout = "CONNECTOR-LAYOUT",
+  Finalized = "FINALIZED",
 }
 
 export default class Domain {
   private blocks: { [index: string]: Block };
-  private state: State;
+  private phase: Phase;
   private title: string;
 
   constructor() {
     this.blocks = {};
-    this.state = State.AddingData;
+    this.phase = Phase.AddingData;
   }
 
   public addBlock(name: string, x_pos?: number, y_pos?: number): Block {
-    const block: Block = new Block(name, x_pos, y_pos);
+    const block: Block = new Block(this, name, x_pos, y_pos);
     this.addBlockToDomain(block);
     return block;
   }
 
   private addBlockToDomain(block: Block): void {
+    this.checkPhaseAllowed(Phase.AddingData);
     const name: string = block.getName();
-    if (this.state !== State.AddingData) {
-      throw new Error(`addBlock() can only be used when in AddingData state`);
-    }
     if (this.blocks[name]) {
       throw new Error(
         `a block with name ${name} already exists in this diagram`
       );
     }
     this.blocks[name] = block;
+  }
+
+  public checkPhaseAllowed(allowedPhase: Phase): void {
+    if (this.phase !== allowedPhase) {
+      throw new Error(
+        `allowed phase ${allowedPhase} is not current phase ${this.phase}`
+      );
+    }
+  }
+
+  public checkPhaseDisallowed(disallowedPhase: Phase): void {
+    if (this.phase === disallowedPhase) {
+      throw new Error(
+        `allowed phase ${disallowedPhase} is not current phase ${this.phase}`
+      );
+    }
   }
 
   public copy(): Domain {
@@ -57,6 +72,7 @@ export default class Domain {
     block_styleset?: SVG.StyleSet,
     connector_styleset?: SVG.StyleSet
   ): SVG.Diagram {
+    this.checkPhaseAllowed(Phase.Finalized);
     const diagram = new SVG.Diagram();
     this.forEachBlock((block) => {
       block.draw(diagram, block_styleset, connector_styleset);
@@ -121,11 +137,7 @@ export default class Domain {
   }
 
   public removeBlock(name: string): void {
-    if (this.state !== State.AddingData) {
-      throw new Error(
-        `removeBlock() can only be used when in AddingData state`
-      );
-    }
+    this.checkPhaseAllowed(Phase.AddingData);
     delete this.blocks[name];
   }
 
@@ -133,6 +145,33 @@ export default class Domain {
     this.forEachBlock((block: Block) => {
       block.reset();
     });
+  }
+
+  public setPhase(newPhase: Phase): void {
+    if (newPhase.charAt(0) <= this.phase.charAt(0)) {
+      throw new Error(`invalid phase change: ${this.phase} -> ${newPhase}`);
+    }
+    if (newPhase === Phase.ConnectorLayout || newPhase === Phase.Finalized) {
+      this.forEachBlock((block) => {
+        if (!block.getCentre()) {
+          throw new Error(
+            `block(s) not positioned on phase change to ${newPhase}`
+          );
+        }
+      });
+    }
+    if (newPhase === Phase.Finalized) {
+      this.forEachBlock((block) => {
+        block.forEachConnector((conn) => {
+          if (conn.getLineSegments().length < 1) {
+            throw new Error(
+              `connector(s) not drawn on phase change to ${newPhase}`
+            );
+          }
+        });
+      });
+    }
+    this.phase = newPhase;
   }
 
   public setTitle(title: string): void {

@@ -159,6 +159,10 @@ export default class Connector {
     return Geom.Direction.nearest(v.getBearing());
   }
 
+  public getLineSegments(): Geom.LineSegment[] {
+    return this.lines;
+  }
+
   /*
   public getMarkup(): string {
     if (this.path_points.length < 2) {

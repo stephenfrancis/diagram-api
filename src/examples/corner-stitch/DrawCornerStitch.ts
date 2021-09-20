@@ -1,4 +1,4 @@
-import CornerStitch, { Tile } from "../layout/CornerStitch";
+import CornerStitch, { Tile } from "../../layout/CornerStitch";
 import * as Geom from "geom-api";
 import * as SVG from "svg-api";
 

@@ -1,9 +1,10 @@
 import * as Geom from "geom-api";
 import Block from "../core/Block";
-import Domain from "../core/Domain";
+import Domain, { Phase } from "../core/Domain";
 import Connector from "../core/Connector";
+import { NonIterativeLayout } from "./ILayout";
 
-export default class SimpleConnectors {
+export default class SimpleConnectors implements NonIterativeLayout {
   private sophistication: number;
 
   constructor(sophistication: number) {
@@ -17,6 +18,16 @@ export default class SimpleConnectors {
       );
     }
     this.sophistication = sophistication;
+  }
+
+  public apply(domain: Domain): void {
+    domain.checkPhaseAllowed(Phase.ConnectorLayout);
+    console.log(
+      `SimpleConnectors.layoutDomain() sophistication: ${this.sophistication}`
+    );
+    domain.forEachBlock((block: Block) => {
+      this.doBlock(block);
+    });
   }
 
   public doBlock(block: Block): void {
@@ -94,14 +105,5 @@ export default class SimpleConnectors {
     connector.addLineSegment(new Geom.LineSegment(elbow, to_shift));
     const v: Geom.Vector = Geom.Vector.between(to_anchor, to_shift);
     connector.addLineSegment(new Geom.LineSegment(to_shift, to_anchor)); // , null, v.getBearing() + 180
-  }
-
-  public layoutDomain(Domain: Domain): void {
-    console.log(
-      `SimpleConnectors.layoutDomain() sophistication: ${this.sophistication}`
-    );
-    Domain.forEachBlock((block: Block) => {
-      this.doBlock(block);
-    });
   }
 }

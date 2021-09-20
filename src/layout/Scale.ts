@@ -1,7 +1,7 @@
 import * as Geom from "geom-api";
 import Block from "../core/Block";
-import Domain from "../core/Domain";
-import ILayout from "./ILayout";
+import Domain, { Phase } from "../core/Domain";
+import { NonIterativeLayout } from "./ILayout";
 
 interface Profile {
   margin_left: number;
@@ -52,7 +52,7 @@ const profiles: { [index: string]: Profile } = {
   },
 };
 
-export default class Scale implements ILayout {
+export default class Scale implements NonIterativeLayout {
   private columns: Column[];
   private rows: Row[];
   private max_col: number;
@@ -62,12 +62,6 @@ export default class Scale implements ILayout {
   private profile: any;
 
   constructor(profile: string) {
-    this.columns = [];
-    this.rows = [];
-    this.max_row = Number.NEGATIVE_INFINITY;
-    this.max_col = Number.NEGATIVE_INFINITY;
-    this.min_row = Number.POSITIVE_INFINITY;
-    this.min_col = Number.POSITIVE_INFINITY;
     this.setProfile(profile);
   }
 
@@ -97,11 +91,25 @@ export default class Scale implements ILayout {
     this.getColumn(point.getX()).addLineTerm(line, which);
   }
 
-  public beginDomain(domain: Domain): void {
+  public apply(domain: Domain): void {
+    domain.checkPhaseDisallowed(Phase.AddingData);
+    domain.checkPhaseDisallowed(Phase.Finalized);
+    this.clear();
     domain.forEachBlock((block: Block) => {
       this.addBlock(block);
       this.addConnectors(block);
     });
+    this.rescaleColumns();
+    this.rescaleRows();
+  }
+
+  public clear(): void {
+    this.columns = [];
+    this.rows = [];
+    this.max_row = Number.NEGATIVE_INFINITY;
+    this.max_col = Number.NEGATIVE_INFINITY;
+    this.min_row = Number.POSITIVE_INFINITY;
+    this.min_col = Number.POSITIVE_INFINITY;
   }
 
   private getColumn(x: number): Column {
@@ -132,12 +140,6 @@ export default class Scale implements ILayout {
       this.rows[y] = new Row(y);
     }
     return this.rows[y];
-  }
-
-  public iterate(): boolean {
-    this.rescaleColumns();
-    this.rescaleRows();
-    return false;
   }
 
   private rescaleColumns(): void {

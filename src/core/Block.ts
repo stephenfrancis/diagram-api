@@ -1,7 +1,7 @@
 import * as Geom from "geom-api";
 import * as SVG from "svg-api";
 import Connector from "./Connector";
-import Domain from "./Domain";
+import Domain, { Phase } from "./Domain";
 
 const DEFAULT_HEIGHT: number = 24;
 const DEFAULT_WIDTH: number = 120;
@@ -9,17 +9,19 @@ const DEFAULT_WIDTH: number = 120;
 export default class Block {
   private centre: Geom.Point;
   private connectors: Connector[];
+  private readonly domain: Domain;
   private height?: number;
   private hover_text: string;
   private link_url: string;
   private name: string;
   private width?: number;
 
-  constructor(name: string, x_pos?: number, y_pos?: number) {
+  constructor(domain: Domain, name: string, x_pos?: number, y_pos?: number) {
     this.connectors = [];
+    this.domain = domain;
     this.name = name;
     if (typeof x_pos === "number" && typeof y_pos === "number") {
-      this.centre = new Geom.Point(x_pos, y_pos);
+      this.setCentre(new Geom.Point(x_pos, y_pos));
     } else if (typeof x_pos === "number" || typeof y_pos === "number") {
       throw new Error(
         `either provide both x (${x_pos}) and y (${y_pos}), as numbers, or neither`
@@ -82,6 +84,12 @@ export default class Block {
       conn.draw(diagram, connector_styleset);
     });
     return group;
+  }
+
+  public forEachConnector(callback: (conn: Connector) => void): void {
+    this.getConnectors().forEach((conn: Connector) => {
+      callback(conn);
+    });
   }
 
   public getAnchorPoint(dir: Geom.Direction | string): Geom.Point {
@@ -174,6 +182,7 @@ export default class Block {
   }
 
   public setCentre(point: Geom.Point): void {
+    this.domain.checkPhaseDisallowed(Phase.Finalized);
     this.centre = point;
   }
 

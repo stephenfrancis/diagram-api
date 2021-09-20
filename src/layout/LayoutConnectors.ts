@@ -1,9 +1,9 @@
 import Domain from "../core/Domain";
-import ILayout from "./ILayout";
+import { NonIterativeLayout } from "./ILayout";
 import Lee from "./Lee";
 import SimpleConnectors from "./SimpleConnectors";
 
-export default class LayoutConnectors implements ILayout {
+export default class LayoutConnectors implements NonIterativeLayout {
   private lee: Lee;
   private simple_connectors: SimpleConnectors;
 
@@ -24,18 +24,11 @@ export default class LayoutConnectors implements ILayout {
     }
   }
 
-  public beginDomain(Domain: Domain): void {
+  public apply(domain: Domain): void {
     if (this.lee) {
-      this.lee.beginDomain(Domain);
+      this.lee.apply(domain);
     } else {
-      this.simple_connectors.layoutDomain(Domain);
+      this.simple_connectors.apply(domain);
     }
-  }
-
-  public iterate(): boolean {
-    if (this.lee) {
-      return this.lee.iterate();
-    }
-    return false;
   }
 }

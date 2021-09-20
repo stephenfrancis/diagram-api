@@ -1,7 +1,8 @@
 import * as Fs from "fs";
 import Block from "../../core/Block";
 import CornerStitch, { Tile } from "../../layout/CornerStitch";
-import DrawCornerStitch from "../../examples/DrawCornerStitch";
+import Domain from "../../core/Domain";
+import DrawCornerStitch from "../../examples/corner-stitch/DrawCornerStitch";
 import { Area, Point } from "geom-api";
 // import Point from "../core/Point";
 // import { renderToString } from "react-dom/server";
@@ -39,14 +40,15 @@ test("basic", () => {
 });
 
 const setupPattern = () => {
+  const d = new Domain();
   const cs: CornerStitch = new CornerStitch(new Point(1000, 500));
   const block_tile_1: Tile = cs.addTile(
     new Area(new Point(200, 100), new Point(399, 299)),
-    new Block("Block 1")
+    d.addBlock("Block 1")
   );
   const block_tile_2: Tile = cs.addTile(
     new Area(new Point(600, 200), new Point(799, 399)),
-    new Block("Block 2")
+    d.addBlock("Block 2")
   );
 
   const spacer_1 = cs.getFirstTile();

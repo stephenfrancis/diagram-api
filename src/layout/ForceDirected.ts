@@ -2,11 +2,11 @@ import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Connector from "../core/Connector";
 import Domain from "../core/Domain";
-import ILayout from "./ILayout";
+import { IterativeLayout } from "./ILayout";
 
 const sample_node: number = -1;
 
-export default class ForceDirected implements ILayout {
+export default class ForceDirected implements IterativeLayout {
   private attraction_constant: number;
   private def_spring_length: number;
   private finalized: boolean;
@@ -70,27 +70,16 @@ export default class ForceDirected implements ILayout {
     });
   }
 
-  public begin(): void {
-    this.throwIfFinalized();
-    this.iterations = this.max_iterations;
-    if (this.nodes.length < 2) {
-      // throw new Error(`need at least 2 nodes, currently: ${this.nodes.length}`);
-      this.iterations = 0; // skip further processing
-    }
-    this.total_disp = 0;
-    this.reset();
-  }
-
-  public beginDomain(Domain: Domain): void {
-    Domain.forEachBlock((block: Block) => {
+  public begin(domain: Domain): void {
+    domain.forEachBlock((block: Block) => {
       this.addBlock(block);
     });
-    Domain.forEachBlock((block: Block) => {
+    domain.forEachBlock((block: Block) => {
       block.getConnectors().forEach((connector: Connector) => {
         this.addRelationship(block, connector.getTo());
       });
     });
-    this.begin();
+    this.initialize();
     this.setBlockPositionFromNodes();
   }
 
@@ -127,6 +116,17 @@ export default class ForceDirected implements ILayout {
 
   public getTotalDisplacement(): number {
     return this.total_disp;
+  }
+
+  public initialize(): void {
+    this.throwIfFinalized();
+    this.iterations = this.max_iterations;
+    if (this.nodes.length < 2) {
+      // throw new Error(`need at least 2 nodes, currently: ${this.nodes.length}`);
+      this.iterations = 0; // skip further processing
+    }
+    this.total_disp = 0;
+    this.reset();
   }
 
   public iterate(): boolean {

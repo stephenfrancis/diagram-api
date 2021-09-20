@@ -1,14 +1,14 @@
 import * as Geom from "geom-api";
 import Block from "../core/Block";
 import Connector from "../core/Connector";
-import Domain from "../core/Domain";
-import ILayout from "./ILayout";
+import Domain, { Phase } from "../core/Domain";
+import { NonIterativeLayout } from "./ILayout";
 
 const pad = function (str, num) {
   return " ".repeat(Math.max(num - str.length, 0)) + str;
 };
 
-export default class Lee implements ILayout {
+export default class Lee implements NonIterativeLayout {
   private cells: Cell[][];
   private max_x: number;
   private max_y: number;
@@ -24,13 +24,14 @@ export default class Lee implements ILayout {
     cell.addBlock(block);
   }
 
-  public beginDomain(Domain: Domain): void {
+  public apply(domain: Domain): void {
     console.log(`Lee.beginDomain()`);
+    domain.checkPhaseAllowed(Phase.ConnectorLayout);
     this.clear();
-    Domain.forEachBlock((block: Block) => {
+    domain.forEachBlock((block: Block) => {
       this.addBlock(block);
     });
-    Domain.forEachBlock((block: Block) => {
+    domain.forEachBlock((block: Block) => {
       this.doBlock(block);
     });
   }
@@ -96,10 +97,6 @@ export default class Lee implements ILayout {
 
   public getMaxRadius(): number {
     return Math.ceil(this.max_x - this.min_x + this.max_y - this.min_y + 2);
-  }
-
-  public iterate(): boolean {
-    return false;
   }
 
   public loopOverCellsX(callback: (Cell) => void): void {

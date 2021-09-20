@@ -1,16 +1,15 @@
 import * as Geom from "geom-api";
 import Block from "../core/Block";
-import Domain from "../core/Domain";
+import Domain, { Phase } from "../core/Domain";
 import Connector from "../core/Connector";
+import { NonIterativeLayout } from "./ILayout";
 
 type Direction = "H" | "V";
 
-export default class LineSpreader {
+export default class LineSpreader implements NonIterativeLayout {
   private line_groups: { [key: string]: LineGroup };
 
-  constructor() {
-    this.line_groups = {};
-  }
+  constructor() {}
 
   private addLine(
     line_seg: Geom.LineSegment,
@@ -30,6 +29,18 @@ export default class LineSpreader {
       );
     }
     this.line_groups[key].addLine(line);
+  }
+
+  public apply(domain: Domain): void {
+    domain.checkPhaseAllowed(Phase.ConnectorLayout);
+    this.clear();
+    domain.forEachBlock((block: Block) => {
+      this.doBlock(block);
+    });
+  }
+
+  public clear(): void {
+    this.line_groups = {};
   }
 
   public doBlock(block: Block): void {
@@ -52,12 +63,6 @@ export default class LineSpreader {
       iter(line);
     });
     iter(null);
-  }
-
-  public layoutDomain(Domain: Domain): void {
-    Domain.forEachBlock((block: Block) => {
-      this.doBlock(block);
-    });
   }
 }
 

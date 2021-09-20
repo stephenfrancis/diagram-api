@@ -1,9 +1,9 @@
 import * as Geom from "geom-api";
 import Block from "../core/Block";
-import Domain from "../core/Domain";
-import ILayout from "./ILayout";
+import Domain, { Phase } from "../core/Domain";
+import { NonIterativeLayout } from "./ILayout";
 
-export default class OverlapFixer implements ILayout {
+export default class OverlapFixer implements NonIterativeLayout {
   private cells: Cell[][];
   private max_x: number;
   private max_y: number;
@@ -18,11 +18,13 @@ export default class OverlapFixer implements ILayout {
     this.makeCellAt(x, y).addBlock(block);
   }
 
-  public beginDomain(Domain: Domain) {
+  public apply(domain: Domain) {
+    domain.checkPhaseAllowed(Phase.ConnectorLayout);
     this.clear();
-    Domain.forEachBlock((block: Block) => {
+    domain.forEachBlock((block: Block) => {
       this.addBlock(block);
     });
+    this.loopOverCellsX();
   }
 
   private clear(): void {
@@ -35,11 +37,6 @@ export default class OverlapFixer implements ILayout {
 
   public getCellAt(coords: number[]): Cell {
     return this.cells[coords[0]] && this.cells[coords[0]][coords[1]];
-  }
-
-  public iterate(): boolean {
-    this.loopOverCellsX();
-    return false;
   }
 
   public loopOverCellsX(): void {

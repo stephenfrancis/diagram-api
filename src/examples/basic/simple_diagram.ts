@@ -1,7 +1,7 @@
 import * as SVG from "svg-api";
-import Domain from "../core/Domain";
+import Domain from "../../core/Domain";
 // import BellmanFord from "../layout/BellmanFord";
-import LayoutConnectors from "../layout/LayoutConnectors";
+import LayoutConnectors from "../../layout/LayoutConnectors";
 
 // const d: SVG.Diagram = new SVG.Diagram();
 const d: Domain = new Domain();
@@ -14,8 +14,7 @@ const c = b1.addConnector(b2, "E", "N");
 // c.addPathPoint(250, 150 - (b2.getHeight() / 2));
 
 const layout = new LayoutConnectors(5);
-layout.beginDomain(d);
-while (layout.iterate());
+layout.apply(d);
 
 const fm = new SVG.FileManager("./build/");
 fm.saveAsSVG(d.draw(), "simple_diagram");
