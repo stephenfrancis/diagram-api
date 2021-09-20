@@ -1,0 +1,21 @@
+
+line {
+  stroke-width: 1;
+  stroke: black;
+}
+
+rect {
+  fill: transparent;
+  stroke-width: 1;
+  stroke: black;
+}
+
+text {
+  font-family: Arial;
+  font-size: 12px;
+}
+
+a > rect {
+  fill: #ccc;
+  cursor: pointer;
+}

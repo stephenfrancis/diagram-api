@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>Drawing Test Page</title>
+    <style>
+      rect {
+        fill: transparent;
+        stroke-width: 1;
+        stroke: black;
+      }
+      text {
+        font-family: Arial;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Drawing Test Page</h1>
+    <div id="svg">
+    </div>
+  </body>
+  <script src="../node_modules/snapsvg/dist/snap.svg-min.js"></script>
+  <script type="text/javascript">
+    var s = Snap(800, 600);
+    var rect = s.rect(10, 10, 100, 40);
+    // rect.attr("fill", "white");
+    // rect.attr("stroke", "1");
+    var text = s.text(12, 26, "Hello Sunray, Seagull here!");
+    s.text(12, 42, "What the bloody hell are you doing?");
+
+</script>
+</html>
