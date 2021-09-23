@@ -62,3 +62,5 @@ typings/
 
 # Stephen
 build
+.cache
+dist

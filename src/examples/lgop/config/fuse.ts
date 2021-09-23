@@ -35,7 +35,7 @@ if (env === "development") {
   config.devServer = {
     httpServer: {
       express: (app, express) => {
-        app.use("/", express.static("./src/assets"));
+        app.use("/", express.static("./assets"));
         app.use(/.*\.css\.map$/, (req, res, next) => {
           res.status(404).end();
         });
@@ -49,13 +49,13 @@ const fuse = fusebox(config);
 if (env === "development") {
   fuse.runDev({
     bundles: {
-      distRoot: "../../dist",
+      distRoot: "../dist",
     },
   });
 } else {
   fuse.runProd({
     bundles: {
-      distRoot: "../../dist",
+      distRoot: "../dist",
     },
   });
 }
