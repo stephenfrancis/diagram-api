@@ -4,19 +4,19 @@ import Doc from "./Doc";
 
 interface Props {}
 
-const INITIAL_HASH = "README.md";
+const getHashFromURL = (url_text) => {
+  const url = new URL(window.location.href);
+  return url.hash ? url.hash.substr(1) : "README.md";
+};
 
 const App: React.FC<Props> = (props) => {
-  const [hash, setHash] = React.useState<string>(INITIAL_HASH);
+  const [hash, setHash] = React.useState<string>(
+    getHashFromURL(window.location.href)
+  );
 
   React.useEffect(() => {
     const onHashChange = () => {
-      const url = new URL(window.location.href);
-      if (url.hash) {
-        setHash(url.hash.substr(1));
-      } else {
-        setHash(INITIAL_HASH);
-      }
+      setHash(getHashFromURL(window.location.href));
     };
     window.addEventListener("hashchange", onHashChange);
     return () => {

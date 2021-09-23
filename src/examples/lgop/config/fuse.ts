@@ -3,13 +3,15 @@ import { IPublicConfig } from "fuse-box/config/IConfig";
 import * as path from "path";
 
 const env = process.env.NODE_ENV || "";
-const workspace = path.join(__dirname, "../..");
+const workspace = path.join(__dirname, "../../../..");
 
 if (["development", "production"].indexOf(env) === -1) {
   throw new Error(
     `unrecognized NODE_ENV: ${env} (should be 'development' or 'production')`
   );
 }
+
+console.log(`workspace: ${workspace}`);
 
 const config: IPublicConfig = {
   entry: "../app/App.tsx",

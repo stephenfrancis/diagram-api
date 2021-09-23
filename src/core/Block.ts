@@ -1,6 +1,6 @@
 import * as Geom from "geom-api";
 import * as SVG from "svg-api";
-import Connector from "./Connector";
+import Connector, { Directionality } from "./Connector";
 import Domain, { Phase } from "./Domain";
 
 const DEFAULT_HEIGHT: number = 24;
@@ -31,6 +31,7 @@ export default class Block {
 
   public addConnector(
     to: Block,
+    directionality: Directionality,
     from_dir?: Geom.Direction | string,
     to_dir?: Geom.Direction | string
   ): Connector {
@@ -40,7 +41,13 @@ export default class Block {
     if (typeof to_dir === "string") {
       to_dir = Geom.Direction.get(to_dir);
     }
-    const conn: Connector = new Connector(this, to, from_dir, to_dir);
+    const conn: Connector = new Connector(
+      this,
+      to,
+      directionality,
+      from_dir,
+      to_dir
+    );
     this.connectors.push(conn);
     return conn;
   }

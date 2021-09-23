@@ -4,11 +4,13 @@ import Arrowhead from "./Arrowhead";
 import Block from "./Block";
 import Domain from "./Domain";
 
+export type Directionality = "none" | "one-way" | "two-way";
 export type PathStyle = "right-angled" | "quad-bezier";
 
 export default class Connector {
   private arrowhead_end: Arrowhead;
   private arrowhead_sta: Arrowhead;
+  private directionality: Directionality;
   private from: Block;
   private from_dir?: Geom.Direction;
   private path_style: PathStyle;
@@ -19,9 +21,11 @@ export default class Connector {
   constructor(
     from: Block,
     to: Block,
+    directionality: Directionality,
     from_dir?: Geom.Direction,
     to_dir?: Geom.Direction
   ) {
+    this.directionality = directionality;
     this.from = from;
     this.from_dir = from_dir;
     this.to = to;
@@ -69,6 +73,7 @@ export default class Connector {
     const new_to: Block = new_d.getBlock(this.to.getName());
     const new_c: Connector = new_from.addConnector(
       new_to,
+      this.getDirectionality(),
       this.getFromDirection(),
       this.getToDirection()
     );
@@ -143,6 +148,10 @@ export default class Connector {
     return extremes;
   }
 */
+
+  public getDirectionality(): Directionality {
+    return this.directionality;
+  }
 
   public getFrom(): Block {
     return this.from;
@@ -233,6 +242,10 @@ export default class Connector {
 
   public setArrowheadStart(arrowhead: Arrowhead): void {
     this.arrowhead_sta = arrowhead;
+  }
+
+  public setDirectionality(directionality: Directionality): void {
+    this.directionality = directionality;
   }
 
   public setPathStyle(arg: PathStyle): void {

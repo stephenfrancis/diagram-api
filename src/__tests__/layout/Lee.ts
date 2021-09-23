@@ -60,7 +60,7 @@ test("check basic diagram", () => {
   const d = makeBasicDiagram();
   const b1 = d.getBlock("top_left");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("E"), Direction.get("W"));
+  b1.addConnector(b3, "one-way", Direction.get("E"), Direction.get("W"));
 
   expect(b1.output()).toEqual(
     "<top_left> at [1, 1]\n\
@@ -75,7 +75,7 @@ test("no obstructions, E -> W", () => {
   const d = makeBasicDiagram();
   const b1 = d.getBlock("top_left");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("E"), Direction.get("W"));
+  b1.addConnector(b3, "one-way", Direction.get("E"), Direction.get("W"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
@@ -95,7 +95,7 @@ test("no obstructions, N -> S", () => {
   const d = makeBasicDiagram();
   const b1 = d.getBlock("top_left");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("S"), Direction.get("N"));
+  b1.addConnector(b3, "one-way", Direction.get("S"), Direction.get("N"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
@@ -116,7 +116,7 @@ test("centre obstruction, E -> W", () => {
   const b1 = d.getBlock("top_left");
   const b2 = d.getBlock("middle");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("E"), Direction.get("W"));
+  b1.addConnector(b3, "one-way", Direction.get("E"), Direction.get("W"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
@@ -139,7 +139,7 @@ test("centre obstruction, N -> S", () => {
   const b1 = d.getBlock("top_left");
   const b2 = d.getBlock("middle");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("S"), Direction.get("N"));
+  b1.addConnector(b3, "one-way", Direction.get("S"), Direction.get("N"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
@@ -159,7 +159,7 @@ test("no obstructions, W -> S", () => {
   const d = makeBasicDiagram();
   const b1 = d.getBlock("top_left");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("S"), Direction.get("W"));
+  b1.addConnector(b3, "one-way", Direction.get("S"), Direction.get("W"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
@@ -179,7 +179,7 @@ test("bottom left obstruction, W -> S", () => {
   addBottomLeftObstruction(d);
   const b1 = d.getBlock("top_left");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("S"), Direction.get("W"));
+  b1.addConnector(b3, "one-way", Direction.get("S"), Direction.get("W"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
@@ -198,7 +198,7 @@ test("no obstructions, E -> N", () => {
   const d = makeBasicDiagram();
   const b1 = d.getBlock("top_left");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("N"), Direction.get("E"));
+  b1.addConnector(b3, "one-way", Direction.get("N"), Direction.get("E"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();
@@ -218,7 +218,7 @@ test("top right obstruction, E -> N", () => {
   addTopRightObstruction(d);
   const b1 = d.getBlock("top_left");
   const b3 = d.getBlock("bottom_right");
-  b1.addConnector(b3, Direction.get("N"), Direction.get("E"));
+  b1.addConnector(b3, "one-way", Direction.get("N"), Direction.get("E"));
 
   d.setPhase(Phase.ConnectorLayout);
   const l: Lee = new Lee();

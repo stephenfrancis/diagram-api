@@ -1,6 +1,6 @@
 import * as React from "react";
 import Domain from "../../../core/Domain";
-import DrawDomain from "../../../react/Domain";
+import DrawDomain from "../../../react/DomainRender";
 
 interface Props {
   domain: Domain;

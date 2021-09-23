@@ -33,7 +33,7 @@ export default class MapLoader {
     if (match && match.length > 2 && parse_state.block) {
       const from_dir: Geom.Direction = Geom.Direction.get(match[1]);
       const to: Block = this.getOrAddBlock(match[2]);
-      parse_state.block.addConnector(to, from_dir);
+      parse_state.block.addConnector(to, "one-way", from_dir);
       return true;
     }
     match = line.match(/^ {2}\* C:\s*\[(.*?)\]\((.*)\)$/);

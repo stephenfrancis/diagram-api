@@ -1,12 +1,9 @@
 import * as React from "react";
-import RootLog from "loglevel";
 import { v4 as uuidv4 } from "uuid";
 import Block from "./Block";
 import Cell from "./Cell";
 import Direction from "./Direction";
 import Point from "./Point";
-
-const Log = RootLog.getLogger("lgop.Location");
 
 class Location {
   private block: Block;
@@ -107,7 +104,7 @@ class Location {
 
   public setBlockCoordinates(): void {
     const point: Point = Cell.getCell(this.row, this.col).getPosition(this.z);
-    Log.debug(`setBlockCoords() ${point.getX()}, ${point.getY()}`);
+    console.log(`setBlockCoords() ${point.getX()}, ${point.getY()}`);
     this.block.getCentre().setX(point.getX());
     this.block.getCentre().setY(point.getY());
   }

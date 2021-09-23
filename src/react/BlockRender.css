@@ -1,0 +1,10 @@
+.main {
+  stroke: darkblue;
+  stroke-width: 1px;
+  fill: #ddd;
+}
+
+.text {
+  stroke: transparent;
+  fill: darkblue;
+}
