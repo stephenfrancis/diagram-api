@@ -4,14 +4,18 @@ import ConnectorRender from "./ConnectorRender";
 
 import styles from "./BlockRender.css";
 
+const PADDING = 5;
+
 interface Props {
   block: Block;
 }
 
 const BlockRender: React.FC<Props> = (props) => {
+  const divRef = React.useRef<HTMLDivElement>(null);
+  const [height, setHeight] = React.useState<number>(24);
   const centre = props.block.getCentre();
   const width = props.block.getWidth();
-  const height = props.block.getHeight();
+  // const height = props.block.getHeight();
   const link = props.block.getLink();
   const connectors = [];
   props.block.forEachConnector((connector) => {
@@ -19,23 +23,31 @@ const BlockRender: React.FC<Props> = (props) => {
       <ConnectorRender key={connector.toString()} connector={connector} />
     );
   });
+
+  React.useEffect(() => {
+    setHeight(divRef.current.offsetHeight + PADDING * 2 + 1);
+  }, [props.block.getName()]);
+
   const render = () => (
     <g>
       <rect
         className={styles.main}
         x={centre.getX() - width / 2}
-        y={centre.getY() - height / 2}
+        y={centre.getY() - 12}
         width={width}
         height={height}
       />
-      <text
-        x={centre.getX()}
-        y={centre.getY() + 5}
-        textAnchor="middle"
-        className={styles.text}
+      <foreignObject
+        x={centre.getX() + PADDING - width / 2}
+        y={centre.getY() + PADDING - 12}
+        width={width - 2 * PADDING}
+        height={height - 2 * PADDING}
+        className={styles.forobj}
       >
-        {props.block.getName()}
-      </text>
+        <div ref={divRef} className={styles.text}>
+          {props.block.getName()}
+        </div>
+      </foreignObject>
     </g>
   );
   return (

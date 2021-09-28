@@ -1,10 +1,18 @@
 import * as Geom from "geom-api";
+import Arrowhead from "../core/Arrowhead";
 import Block from "../core/Block";
 import Domain from "../core/Domain";
 import Connector from "../core/Connector";
+import { NonIterativeLayout } from "./ILayout";
 
-export default class FinishConnectors {
+export default class FinishConnectors implements NonIterativeLayout {
   constructor() {}
+
+  public apply(Domain: Domain): void {
+    Domain.forEachBlock((block: Block) => {
+      this.doBlock(block);
+    });
+  }
 
   public doBlock(block: Block): void {
     block.getConnectors().forEach((connector: Connector) => {
@@ -22,11 +30,20 @@ export default class FinishConnectors {
       last_line = line;
     });
     if (first_line) {
-      const from_dir: Geom.Direction = connector.getFromDirection();
-      const from_anchor: Geom.Point = connector
-        .getFrom()
-        .getAnchorPoint(from_dir);
-      first_line.setFrom(from_anchor);
+      const fr_dir: Geom.Direction = connector.getFromDirection();
+      const fr_anchor: Geom.Point = connector.getFrom().getAnchorPoint(fr_dir);
+      first_line.setFrom(fr_anchor);
+
+      if (connector.getDirectionality() === "two-way") {
+        connector.setArrowheadStart(
+          new Arrowhead(
+            fr_anchor.getX(),
+            fr_anchor.getY(),
+            fr_dir.getAngle(),
+            10
+          )
+        );
+      }
     }
     if (last_line) {
       const to_dir: Geom.Direction = connector.getToDirection();
@@ -34,12 +51,17 @@ export default class FinishConnectors {
       const v: Geom.Vector = Geom.Vector.between(to_anchor, last_line.getTo());
       last_line.setTo(to_anchor);
       // last_line.setArrowheadBearingTo(v.getBearing());
-    }
-  }
 
-  public layoutDomain(Domain: Domain): void {
-    Domain.forEachBlock((block: Block) => {
-      this.doBlock(block);
-    });
+      if (connector.getDirectionality() !== "none") {
+        connector.setArrowheadEnd(
+          new Arrowhead(
+            to_anchor.getX(),
+            to_anchor.getY(),
+            to_dir.getOppositeAngle(),
+            10
+          )
+        );
+      }
+    }
   }
 }

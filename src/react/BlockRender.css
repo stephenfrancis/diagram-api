@@ -4,7 +4,11 @@
   fill: #ddd;
 }
 
+.forobj {
+  fill: transparent;
+}
+
 .text {
-  stroke: transparent;
-  fill: darkblue;
+  text-align: center;
+  color: darkblue;
 }

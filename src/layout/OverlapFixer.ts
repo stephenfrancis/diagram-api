@@ -19,7 +19,7 @@ export default class OverlapFixer implements NonIterativeLayout {
   }
 
   public apply(domain: Domain) {
-    domain.checkPhaseAllowed(Phase.ConnectorLayout);
+    domain.checkPhaseAllowed(Phase.BlockLayout);
     this.clear();
     domain.forEachBlock((block: Block) => {
       this.addBlock(block);

@@ -1,5 +1,4 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 import Doc from "./Doc";
 
 interface Props {}
@@ -26,9 +25,14 @@ const App: React.FC<Props> = (props) => {
 
   return (
     <div>
+      <div>
+        <a href="#cleveland.md">cleveland</a> <a href="#mars.md">mars</a>{" "}
+        <a href="#phobos.md">phobos</a> <a href="#sandusky.md">sandusky</a>{" "}
+        <a href="#test.md">test</a> <a href="#venus.md">venus</a>
+      </div>
       <Doc doc_id={hash} />
     </div>
   );
 };
 
-ReactDOM.render(<App />, window.document.getElementById("app"));
+export default App;

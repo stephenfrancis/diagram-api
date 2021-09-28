@@ -53,7 +53,11 @@ export default class Lee implements NonIterativeLayout {
   private doBlock(block: Block): void {
     // const report: boolean = (block.getName().indexOf("Now THIS Is My Kind") === 0);
     block.getConnectors().forEach((connector: Connector) => {
-      this.doConnector(connector, false);
+      try {
+        this.doConnector(connector, false);
+      } catch (e) {
+        console.error(e);
+      }
     });
   }
 

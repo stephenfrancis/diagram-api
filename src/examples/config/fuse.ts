@@ -3,7 +3,7 @@ import { IPublicConfig } from "fuse-box/config/IConfig";
 import * as path from "path";
 
 const env = process.env.NODE_ENV || "";
-const workspace = path.join(__dirname, "../../../..");
+const workspace = path.join(__dirname, "../..");
 
 if (["development", "production"].indexOf(env) === -1) {
   throw new Error(
@@ -14,7 +14,7 @@ if (["development", "production"].indexOf(env) === -1) {
 console.log(`workspace: ${workspace}`);
 
 const config: IPublicConfig = {
-  entry: "../app/App.tsx",
+  entry: "../index.tsx",
   target: "browser",
   plugins: [
     pluginPostCSS("*.css", {
@@ -37,7 +37,7 @@ if (env === "development") {
   config.devServer = {
     httpServer: {
       express: (app, express) => {
-        app.use("/", express.static("./assets"));
+        app.use("/", express.static("./lgop/assets"));
         app.use(/.*\.css\.map$/, (req, res, next) => {
           res.status(404).end();
         });
