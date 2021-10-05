@@ -110,7 +110,7 @@ export default class Domain {
         max_x = x;
       }
     });
-    return max_x + 10; // allow for border and connector paths
+    return max_x + 20; // allow for border and connector paths
   }
 
   public getMaxY(): number {
@@ -121,7 +121,7 @@ export default class Domain {
         max_y = y;
       }
     });
-    return max_y + 10; // allow for border and connector paths
+    return max_y + 20; // allow for border and connector paths
   }
 
   public getTitle(): string {

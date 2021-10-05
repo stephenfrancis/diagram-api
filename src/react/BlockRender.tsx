@@ -8,11 +8,13 @@ const PADDING = 5;
 
 interface Props {
   block: Block;
+  redraw?: () => void;
 }
 
 const BlockRender: React.FC<Props> = (props) => {
   const divRef = React.useRef<HTMLDivElement>(null);
-  const [height, setHeight] = React.useState<number>(24);
+  // const [height, setHeight] = React.useState<number>(24);
+  const height = props.block.getHeight();
   const centre = props.block.getCentre();
   const width = props.block.getWidth();
   // const height = props.block.getHeight();
@@ -25,7 +27,8 @@ const BlockRender: React.FC<Props> = (props) => {
   });
 
   React.useEffect(() => {
-    setHeight(divRef.current.offsetHeight + PADDING * 2 + 1);
+    props.block.setHeight(divRef.current.offsetHeight + PADDING * 2 + 1);
+    props.redraw();
   }, [props.block.getName()]);
 
   const render = () => (

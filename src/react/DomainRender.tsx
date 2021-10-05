@@ -7,9 +7,15 @@ interface Props {
 }
 
 const Main: React.FC<Props> = (props) => {
+  const [count, setCount] = React.useState<number>(1);
   const blocks = [];
+  const redraw = () => {
+    setCount((c) => c + 1);
+  };
   props.domain.forEachBlock((block) => {
-    blocks.push(<BlockRender block={block} key={block.getName()} />);
+    blocks.push(
+      <BlockRender block={block} key={block.getName()} redraw={redraw} />
+    );
   });
   return (
     <svg
