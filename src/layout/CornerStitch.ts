@@ -1,7 +1,16 @@
 import * as Geom from "geom-api";
 import Block from "../core/Block";
+import Domain, { Phase } from "../core/Domain";
+import { NonIterativeLayout } from "./ILayout";
 
-export default class CornerStitch {
+/**
+ * Layout consists of a mosaic of tiles of two types: solids and spacers
+ * Tiles cover the entire area with no overlaps
+ * Spacer tiles are organized as maximal horizontal strips
+ * i.e. no spacer tile has another spacer to its immediate left or right
+ */
+
+export default class CornerStitch implements NonIterativeLayout {
   private all_tiles: Tile[];
   private total_area: Geom.Area;
   private first_tile: Tile;
@@ -18,21 +27,28 @@ export default class CornerStitch {
     return tile;
   }
 
+  public apply(domain: Domain) {
+    domain.checkPhaseAllowed(Phase.BlockLayout);
+    domain.forEachBlock((block: Block) => {
+      this.addTile(block.getArea(), block);
+    });
+  }
+
   public checkStitches(): void {
     this.all_tiles.forEach((tile: Tile) => {
       tile.checkStitches();
     });
   }
 
-  public doesAreaContainBlock(
+  public findSolidTileWithinArea(
     top_left: Geom.Point,
     bottom_right: Geom.Point
-  ): boolean {
+  ): Tile {
     const bottom_left: Geom.Point = new Geom.Point(
       top_left.getX(),
       bottom_right.getY()
     );
-    return this.findTileContaining(bottom_left).doesAreaContainBlock(
+    return this.findTileContaining(bottom_left).findSolidTileWithinArea(
       top_left,
       bottom_right
     );
@@ -82,14 +98,14 @@ export default class CornerStitch {
 export class Tile {
   private area: Geom.Area;
   private block: Block;
-  private tl: Tile;
-  private tr: Tile;
-  private bl: Tile;
-  private br: Tile;
-  private lt: Tile;
-  private rt: Tile;
-  private lb: Tile;
-  private rb: Tile;
+  private tl: Tile; // top of left side pointing left
+  private tr: Tile; // top of right side pointing right
+  private bl: Tile; // bottom of left side pointing left
+  private br: Tile; // bottom of right side pointing right
+  private lt: Tile; // left of top side pointing upwards
+  private rt: Tile; // right of top side pointing upwards
+  private lb: Tile; // left of bottom side pointing downwards
+  private rb: Tile; // right of bottom side pointing downwards
 
   constructor(area: Geom.Area, block?: Block) {
     this.area = area;
@@ -150,53 +166,24 @@ export class Tile {
     this.checkStitch("l", "b", this.lb);
   }
 
-  public doesAreaContainBlock(
+  public findSolidTileWithinArea(
     top_left: Geom.Point,
     bottom_right: Geom.Point
-  ): boolean {
-    if (this.block) {
-      return true;
-    } else if (top_left.getY() < this.getMinY()) {
-      return false;
-    } else if (
-      this.tr &&
-      this.tr.getMinX() < bottom_right.getX() &&
-      this.tr.block
-    ) {
-      return true;
-    } else if (this.lt && this.lt.getMaxY() > top_left.getY()) {
-      return this.lt.doesAreaContainBlock(top_left, bottom_right);
-    } else {
-      return false;
+  ): Tile {
+    if (this.isSolid()) {
+      return this;
     }
-  }
-
-  public forEachNeighbour(callback: (tile: Tile) => {}): void {
-    this.forEachNeighbourAlongSide(this.tr, this.br, "lb", callback); // right side
-    this.forEachNeighbourAlongSide(this.rb, this.lb, "tl", callback); // bottom side
-    this.forEachNeighbourAlongSide(this.bl, this.tl, "rt", callback); // left side
-    this.forEachNeighbourAlongSide(this.lt, this.rt, "br", callback); // top side
-  }
-
-  private forEachNeighbourAlongSide(
-    start: Tile,
-    end: Tile,
-    dir: string,
-    callback: (tile: Tile) => void
-  ): void {
-    let neighbour: Tile = start;
-    do {
-      callback(neighbour);
-      neighbour = neighbour[dir];
-    } while (neighbour !== end);
-  }
-
-  public forEachTileInArea(
-    top_left: Geom.Point,
-    bottom_right: Geom.Point,
-    callback: (tile: Tile) => void
-  ): void {
-    callback(this);
+    if (
+      this.area.getBottomRight().getX() < bottom_right.getX() &&
+      this.br &&
+      this.br.isSolid()
+    ) {
+      return this.br;
+    }
+    if (this.area.getTopLeft().getY() > top_left.getY()) {
+      return this.lt.findSolidTileWithinArea(top_left, bottom_right);
+    }
+    return null;
   }
 
   public findTileContaining(point: Geom.Point): Tile {
@@ -213,12 +200,69 @@ export class Tile {
     }
   }
 
+  public forEachNeighbour(callback: (tile: Tile) => void): void {
+    this.forEachNeighbourAlongSide(this.tr, this.br, "lb", callback); // right side
+    this.forEachNeighbourAlongSide(this.rb, this.lb, "tl", callback); // bottom side
+    this.forEachNeighbourAlongSide(this.bl, this.tl, "rt", callback); // left side
+    this.forEachNeighbourAlongSide(this.lt, this.rt, "br", callback); // top side
+  }
+
+  public forEachNeighbourAlongSide(
+    start: Tile,
+    end: Tile,
+    dir: string,
+    callback: (tile: Tile) => void
+  ): void {
+    let neighbour: Tile = start;
+    while (neighbour) {
+      callback(neighbour);
+      if (neighbour === end) {
+        neighbour = null;
+      } else {
+        neighbour = neighbour[dir];
+      }
+    }
+  }
+
+  public forEachTileInArea(
+    top_left: Geom.Point,
+    bottom_right: Geom.Point,
+    callback: (tile: Tile) => void
+  ): void {
+    if (this.isSolid()) {
+    } else {
+    }
+  }
+
+  public forEachConnector(callback: (connector: any) => void) {
+    return;
+  }
+
   public getArea(): Geom.Area {
     return this.area;
   }
 
   public getBlock(): Block {
     return this.block;
+  }
+
+  public getCentre(): Geom.Point {
+    return new Geom.Point(
+      (this.getMinX() + this.getMaxX()) / 2,
+      (this.getMinY() + this.getMaxY()) / 2
+    );
+  }
+
+  public getHeight(): number {
+    return this.getMaxY() - this.getMinY();
+  }
+
+  public getId(): string {
+    return this.block?.getId() || `spacer_${this.area}`;
+  }
+
+  public getLink(): string {
+    return this.block?.getLink();
   }
 
   public getMaxX(): number {
@@ -235,6 +279,18 @@ export class Tile {
 
   public getMinY(): number {
     return this.area.getTopLeft().getY();
+  }
+
+  public getName(): string {
+    return this.toString();
+  }
+
+  public getWidth(): number {
+    return this.getMaxX() - this.getMinX();
+  }
+
+  public isSolid(): boolean {
+    return !!this.block;
   }
 
   public setArea(area: Geom.Area): void {
@@ -267,6 +323,8 @@ export class Tile {
     }
     this[ref] = tile;
   }
+
+  public setHeight(height: number) {} // ignore
 
   public sweep(
     dir: string,

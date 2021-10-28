@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import BellmanFord from "../../layout/BellmanFord";
 
 test("basic", () => {

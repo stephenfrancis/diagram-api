@@ -12,16 +12,31 @@ export default class Block {
   private readonly domain: Domain;
   private height?: number;
   private hover_text: string;
+  private readonly id: string;
   private link_url: string;
   private name: string;
   private width?: number;
 
-  constructor(domain: Domain, name: string, x_pos?: number, y_pos?: number) {
+  constructor(
+    domain: Domain,
+    name: string,
+    x_pos?: number,
+    y_pos?: number,
+    width?: number,
+    height?: number
+  ) {
     this.connectors = [];
     this.domain = domain;
     this.name = name;
+    this.id = String(Math.random() * 10e16);
     if (typeof x_pos === "number" && typeof y_pos === "number") {
       this.setCentre(new Geom.Point(x_pos, y_pos));
+      if (typeof width === "number") {
+        this.setWidth(width);
+      }
+      if (typeof height === "number") {
+        this.setHeight(height);
+      }
     } else if (typeof x_pos === "number" || typeof y_pos === "number") {
       throw new Error(
         `either provide both x (${x_pos}) and y (${y_pos}), as numbers, or neither`
@@ -110,6 +125,17 @@ export default class Block {
     return point;
   }
 
+  public getArea(): Geom.Area {
+    return new Geom.Area(this.getTopLeftPoint(), this.getBottomRightPoint());
+  }
+
+  public getBottomRightPoint(): Geom.Point {
+    return new Geom.Point(
+      this.getCentre().getX() + this.getWidth() / 2,
+      this.getCentre().getY() + this.getHeight() / 2
+    );
+  }
+
   public getCentre(): Geom.Point {
     return this.centre;
   }
@@ -124,6 +150,10 @@ export default class Block {
 
   public getHoverText(): string {
     return this.hover_text;
+  }
+
+  public getId(): string {
+    return this.id;
   }
 
   public getLink(): string {
@@ -166,6 +196,13 @@ export default class Block {
     return this.name;
   }
 
+  public getTopLeftPoint(): Geom.Point {
+    return new Geom.Point(
+      this.getCentre().getX() - this.getWidth() / 2,
+      this.getCentre().getY() - this.getHeight() / 2
+    );
+  }
+
   public getWidth(): number {
     return typeof this.width === "number" ? this.width : DEFAULT_WIDTH;
   }
@@ -194,6 +231,7 @@ export default class Block {
   }
 
   public setHeight(arg: number): void {
+    console.log(`setting height of ${this.name} to ${arg}`);
     this.height = arg;
   }
 
@@ -210,6 +248,6 @@ export default class Block {
   }
 
   public toString(): string {
-    return `<${this.name}> at ${this.centre}`;
+    return `<${this.name}> at ${this.centre || "unpositioned"}`;
   }
 }

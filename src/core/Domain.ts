@@ -19,8 +19,14 @@ export default class Domain {
     this.phase = Phase.AddingData;
   }
 
-  public addBlock(name: string, x_pos?: number, y_pos?: number): Block {
-    const block: Block = new Block(this, name, x_pos, y_pos);
+  public addBlock(
+    name: string,
+    x_pos?: number,
+    y_pos?: number,
+    width?: number,
+    height?: number
+  ): Block {
+    const block: Block = new Block(this, name, x_pos, y_pos, width, height);
     this.addBlockToDomain(block);
     return block;
   }

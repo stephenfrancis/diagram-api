@@ -21,12 +21,13 @@
   "jest": {
     "moduleFileExtensions": [
       "ts",
+      "tsx",
       "js"
     ],
     "transform": {
       "\\.(ts|tsx)$": "ts-jest"
     },
-    "testRegex": "__tests__/.*\\.(ts)$",
+    "testRegex": "__tests__/.*\\.(ts|tsx)$",
     "globals": {
       "ts-jest": {
         "diagnostics": {
@@ -45,7 +46,7 @@
     "@types/react-router": "^5.1",
     "@types/react-router-dom": "^5.1",
     "fuse-box": "^4.0.1-next.7",
-    "geom-api": "https://github.com/stephenfrancis/geom-api.git",
+    "geom-api": "https://github.com/stephenfrancis/geom-api.git#0.0.3",
     "jest": "^27.0",
     "nyc": "^15.1",
     "postcss-modules": "^4.1.3",

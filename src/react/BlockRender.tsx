@@ -1,3 +1,4 @@
+import * as Geom from "geom-api";
 import * as React from "react";
 import Block from "../core/Block";
 import ConnectorRender from "./ConnectorRender";
@@ -6,8 +7,19 @@ import styles from "./BlockRender.css";
 
 const PADDING = 5;
 
+export interface RenderableBlock {
+  forEachConnector: (callback: (connector) => void) => void;
+  getCentre: () => Geom.Point;
+  getHeight: () => number;
+  getId: () => string;
+  getLink: () => string;
+  getName: () => string;
+  getWidth: () => number;
+  setHeight: (height: number) => void;
+}
+
 interface Props {
-  block: Block;
+  block: RenderableBlock;
   redraw?: () => void;
 }
 
@@ -17,7 +29,6 @@ const BlockRender: React.FC<Props> = (props) => {
   const height = props.block.getHeight();
   const centre = props.block.getCentre();
   const width = props.block.getWidth();
-  // const height = props.block.getHeight();
   const link = props.block.getLink();
   const connectors = [];
   props.block.forEachConnector((connector) => {
@@ -27,9 +38,12 @@ const BlockRender: React.FC<Props> = (props) => {
   });
 
   React.useEffect(() => {
+    console.log(`useEffect() ${props.block.getName()} height: ${divRef.current.offsetHeight}`)
     props.block.setHeight(divRef.current.offsetHeight + PADDING * 2 + 1);
     props.redraw();
-  }, [props.block.getName()]);
+  }, [props.block.getId()]);
+
+  console.log(`rerender ${props.block.getName()} height ${height}`)
 
   const render = () => (
     <g>

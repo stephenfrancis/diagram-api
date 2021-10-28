@@ -15,7 +15,7 @@ const makeBasicDiagram = () => {
 
 const finishConnectors = (d: Domain) => {
   const f: FinishConnectors = new FinishConnectors();
-  f.layoutDomain(d);
+  f.apply(d);
 };
 
 const BLOCK_STYLESET = new StyleSet({
@@ -30,7 +30,7 @@ const CONNECTOR_STYLESET = new StyleSet({
   "stroke-width": "3px",
   fill: "transparent",
   "font-size": "16px",
-  "stroke-linejoin": "round",
+  // "stroke-linejoin": "round",
 });
 
 const writeDiagram = (d: Domain, filename: string) => {
