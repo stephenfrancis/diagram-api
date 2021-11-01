@@ -27,6 +27,7 @@
     "transform": {
       "\\.(ts|tsx)$": "ts-jest"
     },
+    "transformIgnorePatterns": [],
     "testRegex": "__tests__/.*\\.(ts|tsx)$",
     "globals": {
       "ts-jest": {

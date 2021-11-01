@@ -413,10 +413,10 @@ export class Tile {
     let next_tile: Tile = null;
     let i = 0;
     while (!next_tile && i < check_seq[dir].length) {
-      let ith_tile = this[check_seq[dir][i]];
+      let ith_tile: Tile = this[check_seq[dir][i]];
       if (ith_tile) {
         // console.log(`  testing ${dir} ${i} ${check_seq[dir][i]} --> ${ith_tile} ${ith_tile.getMaxY()}`)
-        if (ith_tile.getMaxY() < y_level) {
+        if (ith_tile.area.getMaxY() < y_level) {
           next_tile = ith_tile;
         }
       }
