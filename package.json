@@ -6,7 +6,7 @@
   "types": "./src/main/Entry.ts",
   "description": "Object Model for Diagrams",
   "scripts": {
-    "clean": "rm -f -r build/*",
+    "clean": "rm -f -r build/* .cache/*",
     "compile": "bash -c 'cd src; tsc'",
     "example": "src/config/run_example.sh",
     "start": "cd src/examples && NODE_ENV=development ../../node_modules/.bin/ts-node config/fuse.ts",
@@ -46,7 +46,7 @@
     "@types/react-router": "^5.1",
     "@types/react-router-dom": "^5.1",
     "fuse-box": "^4.0.1-next.7",
-    "geom-api": "https://github.com/stephenfrancis/geom-api.git#0.0.3",
+    "geom-api": "https://github.com/stephenfrancis/geom-api.git#0.0.4",
     "jest": "^27.0",
     "nyc": "^15.1",
     "postcss-modules": "^4.1.3",

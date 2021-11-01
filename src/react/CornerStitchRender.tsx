@@ -1,5 +1,5 @@
 import * as React from "react";
-import BlockRender from "./BlockRender";
+import TileRender from "./TileRender";
 import CornerStitch from "../layout/CornerStitch";
 
 interface Props {
@@ -9,12 +9,9 @@ interface Props {
 const Main: React.FC<Props> = (props) => {
   const [count, setCount] = React.useState<number>(1);
   const blocks = [];
-  const redraw = () => {
-    setCount((c) => c + 1);
-  };
   props.cs.forEachTile((tile) => {
     blocks.push(
-      <BlockRender block={tile} key={tile.getName()} redraw={redraw} />
+      <TileRender tile={tile} key={tile.getName()} />
     );
   });
   const width = props.cs.getArea().getBottomRight().getX() - props.cs.getArea().getTopLeft().getX();
