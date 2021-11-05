@@ -13,8 +13,8 @@ const TileRender: React.FC<Props> = (props) => {
   const divRef = React.useRef<HTMLDivElement>(null);
   // const [height, setHeight] = React.useState<number>(24);
   const area = props.tile.getArea();
-  const height = area.getBottomRight().getY() - area.getTopLeft().getY();
-  const width = area.getBottomRight().getX() - area.getTopLeft().getX();
+  const height = area.getHeight();
+  const width = area.getWidth();
 
   console.log(`rerender ${props.tile.toString()} height ${height}`)
 
@@ -22,14 +22,14 @@ const TileRender: React.FC<Props> = (props) => {
     <g>
       <rect
         className={styles.main}
-        x={area.getTopLeft().getX()}
-        y={area.getTopLeft().getY()}
+        x={area.getMinX()}
+        y={area.getMinY()}
         width={width}
         height={height}
       />
       <foreignObject
-        x={area.getTopLeft().getX() + PADDING}
-        y={area.getTopLeft().getY() + PADDING}
+        x={area.getMinX() + PADDING}
+        y={area.getMinY() + PADDING}
         width={width - 2 * PADDING}
         height={height - 2 * PADDING}
         className={styles.forobj}

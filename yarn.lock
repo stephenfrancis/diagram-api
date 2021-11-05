@@ -1772,9 +1772,9 @@ gensync@^1.0.0-beta.2:
   resolved "https://registry.yarnpkg.com/gensync/-/gensync-1.0.0-beta.2.tgz#32a6ee76c3d7f52d46b2b1ae5d93fea8580a25e0"
   integrity sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==
 
-"geom-api@https://github.com/stephenfrancis/geom-api.git#0.0.4":
-  version "0.0.4"
-  resolved "https://github.com/stephenfrancis/geom-api.git#e926fac10caa36ce23914074175982db11373825"
+"geom-api@https://github.com/stephenfrancis/geom-api.git#0.0.5":
+  version "0.0.5"
+  resolved "https://github.com/stephenfrancis/geom-api.git#3aaf8564f7eea75c75ecfe2ed0e172c81c3dd552"
   dependencies:
     "@types/jest" "^26.0"
     "@types/node" "^15.12"

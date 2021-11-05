@@ -3,6 +3,9 @@ import Block from "../core/Block";
 import Domain, { Phase } from "../core/Domain";
 import { NonIterativeLayout } from "./ILayout";
 
+type Side = "t" | "r" | "b" | "l";
+type Ref = "tr" | "tl" | "rt" | "rb" | "br" | "bl" | "lb" | "lt";
+
 /**
  * Layout consists of a mosaic of tiles of two types: solids and spacers
  * Tiles cover the entire area with no overlaps
@@ -42,7 +45,10 @@ export default class CornerStitch implements NonIterativeLayout {
         above_right
       );
       above_left = spacer_overlapping_block;
-      spacer_overlapping_block = spacer_overlapping_block.getNeighbour("lb");
+      spacer_overlapping_block = spacer_overlapping_block.getStitch("lb");
+      // console.log(
+      //   ` addBlock iter ${above_left} -> ${spacer_overlapping_block}`
+      // );
     } while (
       spacer_overlapping_block &&
       spacer_overlapping_block.getArea().getMaxY() <= area.getMaxY()
@@ -65,20 +71,23 @@ export default class CornerStitch implements NonIterativeLayout {
     });
   }
 
-  public checkStitches(): void {
+  public checkStitches(): string[] {
+    const collector: string[] = [];
     this.all_tiles.forEach((tile: Tile) => {
-      tile.checkStitches();
+      tile.checkStitches(collector);
     });
+    return collector;
   }
 
   public findSolidTileWithinArea(area: Area): Tile {
-    const bottom_left: Point = new Point(area.getMinX(), area.getMaxY());
-    return this.findTileContaining(bottom_left).findSolidTileWithinArea(area);
+    return this.findTileContaining(
+      area.getBottomLeft()
+    ).findSolidTileWithinArea(area);
   }
 
   public findTileContaining(point: Point): Tile {
     const out = this.first_tile.findTileContaining(point);
-    console.log(`findTileContaining(${point}) = ${out}`);
+    // console.log(`findTileContaining(${point}) = ${out}`);
     return out;
   }
 
@@ -107,6 +116,14 @@ export default class CornerStitch implements NonIterativeLayout {
     return this.first_tile;
   }
 
+  public removeTile(tile: Tile): void {
+    const i = this.all_tiles.indexOf(tile);
+    if (i === -1) {
+      throw new Error(`tile not found: ${tile}`);
+    }
+    this.all_tiles.splice(i, 1);
+  }
+
   public sweep(callback: (tile: Tile) => void): void {
     this.findTileContaining(new Point(999, 499)).sweep(
       "l",
@@ -133,75 +150,86 @@ export class Tile {
     this.block = block;
   }
 
-  private checkStitch(locn: string, dir: string, tile?: Tile): void {
+  public adjustNeighbourStitches(new_tile: Tile): void {
+    const all_neighbours = [];
+    this.forEachNeighbour((neighbour) => all_neighbours.push(neighbour));
+    all_neighbours.forEach((neighbour) =>
+      new_tile.updateMutualStitches(neighbour)
+    );
+  }
+
+  private checkStitch(collector: string[], locn: Side, dir: Side): void {
+    const tile: Tile = this[`${locn}${dir}`];
     if (!tile) {
       if (dir === "l" && this.area.getMinX() > 0)
-        console.log(`ERROR: ${this} missing ${locn}${dir}`);
+        collector.push(`${this} missing ${locn}${dir}`);
       if (dir === "r" && this.area.getMaxX() < 999)
-        console.log(`ERROR: ${this} missing ${locn}${dir}`);
+        collector.push(`${this} missing ${locn}${dir}`);
       if (dir === "t" && this.area.getMinY() > 0)
-        console.log(`ERROR: ${this} missing ${locn}${dir}`);
+        collector.push(`${this} missing ${locn}${dir}`);
       if (dir === "b" && this.area.getMaxY() < 499)
-        console.log(`ERROR: ${this} missing ${locn}${dir}`);
+        collector.push(`${this} missing ${locn}${dir}`);
       return;
     }
     if (dir === "l" && this.area.getMinX() - 1 !== tile.area.getMaxX())
-      console.log(`ERROR: ${this} ${locn}l not adjacent to ${tile} `);
+      collector.push(`${this} ${locn}l not adjacent to ${tile} `);
     if (dir === "r" && this.area.getMaxX() + 1 !== tile.area.getMinX())
-      console.log(`ERROR: ${this} ${locn}r not adjacent to ${tile} `);
+      collector.push(`${this} ${locn}r not adjacent to ${tile} `);
     if (dir === "t" && this.area.getMinY() - 1 !== tile.area.getMaxY())
-      console.log(`ERROR: ${this} ${locn}t not adjacent to ${tile} `);
+      collector.push(`${this} ${locn}t not adjacent to ${tile} `);
     if (dir === "b" && this.area.getMaxY() + 1 !== tile.area.getMinY())
-      console.log(`ERROR: ${this} ${locn}b not adjacent to ${tile} `);
+      collector.push(`${this} ${locn}b not adjacent to ${tile} `);
     if (
       locn === "l" &&
       (tile.area.getMinX() > this.area.getMinX() ||
         tile.area.getMaxX() < this.area.getMinX())
     )
-      console.log(`ERROR: ${this} l${dir} not aligned to ${tile} `);
+      collector.push(`${this} l${dir} not aligned to ${tile} `);
     if (
       locn === "r" &&
       (tile.area.getMinX() > this.area.getMaxX() ||
         tile.area.getMaxX() < this.area.getMaxX())
     )
-      console.log(`ERROR: ${this} r${dir} not aligned to ${tile} `);
+      collector.push(`${this} r${dir} not aligned to ${tile} `);
     if (
       locn === "t" &&
       (tile.area.getMinY() > this.area.getMinY() ||
         tile.area.getMaxY() < this.area.getMinY())
     )
-      console.log(`ERROR: ${this} t${dir} not aligned to ${tile} `);
+      collector.push(`${this} t${dir} not aligned to ${tile} `);
     if (
       locn === "b" &&
       (tile.area.getMinY() > this.area.getMaxY() ||
         tile.area.getMaxY() < this.area.getMaxY())
     )
-      console.log(`ERROR: ${this} b${dir} not aligned to ${tile} `);
+      collector.push(`${this} b${dir} not aligned to ${tile} `);
   }
 
-  public checkStitches(): void {
-    console.log(`checking stitches for tile ${this}`);
-    this.checkStitch("b", "l", this.bl);
-    this.checkStitch("b", "r", this.br);
-    this.checkStitch("r", "t", this.rt);
-    this.checkStitch("r", "b", this.rb);
-    this.checkStitch("t", "l", this.tl);
-    this.checkStitch("t", "r", this.tr);
-    this.checkStitch("l", "t", this.lt);
-    this.checkStitch("l", "b", this.lb);
+  public checkStitches(collector: string[]): void {
+    this.checkStitch(collector, "b", "l");
+    this.checkStitch(collector, "b", "r");
+    this.checkStitch(collector, "r", "t");
+    this.checkStitch(collector, "r", "b");
+    this.checkStitch(collector, "t", "l");
+    this.checkStitch(collector, "t", "r");
+    this.checkStitch(collector, "l", "t");
+    this.checkStitch(collector, "l", "b");
   }
 
   public findSolidTileWithinArea(area: Area): Tile {
+    let out = null;
     if (this.isSolid()) {
-      return this;
+      out = this;
+    } else if (
+      this.area.getMaxX() >= area.getMinX() &&
+      this.br &&
+      this.br.isSolid()
+    ) {
+      out = this.br;
+    } else if (this.area.getMinY() > area.getMinY()) {
+      out = this.lt.findSolidTileWithinArea(area);
     }
-    if (this.area.getMaxX() < area.getMaxX() && this.br && this.br.isSolid()) {
-      return this.br;
-    }
-    if (this.area.getMinY() > area.getMinY()) {
-      return this.lt.findSolidTileWithinArea(area);
-    }
-    return null;
+    return out;
   }
 
   public findTileContaining(point: Point): Tile {
@@ -228,7 +256,7 @@ export class Tile {
   public forEachNeighbourAlongSide(
     start: Tile,
     end: Tile,
-    dir: string,
+    dir: Ref,
     callback: (tile: Tile) => void
   ): void {
     let neighbour: Tile = start;
@@ -256,19 +284,34 @@ export class Tile {
     return;
   }
 
+  public getAllStitches(): [
+    lt: Tile,
+    rt: Tile,
+    tr: Tile,
+    br: Tile,
+    rb: Tile,
+    lb: Tile,
+    bl: Tile,
+    tl: Tile
+  ] {
+    return [
+      this.lt,
+      this.rt,
+      this.tr,
+      this.br,
+      this.rb,
+      this.lb,
+      this.bl,
+      this.tl,
+    ];
+  }
+
   public getArea(): Area {
     return this.area;
   }
 
   public getBlock(): Block {
     return this.block;
-  }
-
-  public getCentre(): Point {
-    return new Point(
-      (this.area.getMinX() + this.area.getMaxX()) / 2,
-      (this.area.getMinY() + this.area.getMaxY()) / 2
-    );
   }
 
   public getId(): string {
@@ -283,7 +326,13 @@ export class Tile {
     return this.toString();
   }
 
-  public getNeighbour(ref: string): Tile {
+  public getNeighbours(): Tile[] {
+    const all_neighbours = [];
+    this.forEachNeighbour((neighbour) => all_neighbours.push(neighbour));
+    return all_neighbours;
+  }
+
+  public getStitch(ref: Ref): Tile {
     return this[ref];
   }
 
@@ -291,11 +340,7 @@ export class Tile {
     return !!this.block;
   }
 
-  public setArea(area: Area): void {
-    this.area = area;
-  }
-
-  public setAllCornerTiles(
+  public setAllStitches(
     lt?: Tile,
     rt?: Tile,
     tr?: Tile,
@@ -315,7 +360,11 @@ export class Tile {
     this.tl = tl;
   }
 
-  public setCornerTileRef(ref: string, tile: Tile): void {
+  public setArea(area: Area): void {
+    this.area = area;
+  }
+
+  public setStitch(ref: Ref, tile: Tile): void {
     if (!/^[tbrl]{2}$/.exec(ref)) {
       throw new Error(`invalid corner tile ref: ${ref}`);
     }
@@ -326,6 +375,7 @@ export class Tile {
 
   public shrinkToFitAbove(cs: CornerStitch, block_tile: Tile): Tile {
     const orig_area = this.area;
+    const orig_neighbours = this.getNeighbours();
     this.area = new Area(
       this.area.getTopLeft(),
       new Point(this.area.getMaxX(), block_tile.area.getMinY() - 1)
@@ -336,10 +386,10 @@ export class Tile {
         orig_area.getBottomRight()
       )
     );
-    this.lb = new_spacer;
-    this.rb = new_spacer;
-    new_spacer.lt = this;
-    new_spacer.rt = this;
+    orig_neighbours.forEach((neighbour) => {
+      neighbour.updateMutualStitches(new_spacer);
+    });
+    this.updateMutualStitches(new_spacer);
     return new_spacer;
   }
 
@@ -355,10 +405,7 @@ export class Tile {
         orig_area.getBottomRight()
       )
     );
-    this.lb = new_spacer;
-    this.rb = new_spacer;
-    new_spacer.lt = this;
-    new_spacer.rt = this;
+    this.updateMutualStitches(new_spacer);
     return new_spacer;
   }
 
@@ -369,39 +416,43 @@ export class Tile {
     above_right: Tile
   ): Tile {
     const orig_area = this.area;
+    const orig_neighbours = this.getNeighbours();
     this.area = new Area(
       this.area.getTopLeft(),
       new Point(block_tile.area.getMinX() - 1, this.area.getMaxY())
     );
-    const new_spacer = cs.addTile(
-      new Area(
-        new Point(block_tile.area.getMaxX() + 1, orig_area.getMinY()),
-        orig_area.getBottomRight()
-      )
+    const new_area = new Area(
+      new Point(block_tile.area.getMaxX() + 1, orig_area.getMinY()),
+      orig_area.getBottomRight()
     );
-    this.tr = block_tile;
-    this.br = block_tile;
-    new_spacer.tl = block_tile;
-    new_spacer.bl = block_tile;
-    this.rt = above_left;
-    new_spacer.lt = above_right;
-    new_spacer.rt = above_right; // TODO might be different
-    if (above_left === above_right) {
-      block_tile.lt = above_left;
-      block_tile.rt = above_left;
-      block_tile.tl = this;
-      block_tile.tr = new_spacer;
+    let out;
+    if (
+      new_area.getMinX() === above_right.area.getMinX() &&
+      new_area.getMaxX() === above_right.area.getMaxX()
+    ) {
+      above_right.area = new Area(
+        above_right.area.getTopLeft(),
+        new_area.getBottomRight()
+      );
+      out = above_right;
     } else {
-      above_left.rb = this;
-      above_right.lb = new_spacer;
+      out = cs.addTile(new_area);
     }
-    above_left.lb = this; // TODO might be a different tile
-    above_right.rb = new_spacer; // TODO might be different
-    return new_spacer;
+    // console.log(`splitAroundBlock(${orig_area}) -> ${this.area} + ${out.area}`);
+    // console.log(`  neighbours: ${orig_neighbours}`);
+    this.updateMutualStitches(out);
+    block_tile.updateMutualStitches(out);
+    this.updateMutualStitches(block_tile);
+    orig_neighbours.forEach((neighbour) => {
+      neighbour.updateMutualStitches(this);
+      neighbour.updateMutualStitches(block_tile);
+      neighbour.updateMutualStitches(out);
+    });
+    return out;
   }
 
   public sweep(
-    dir: string,
+    dir: Side,
     y_level: number,
     callback: (tile: Tile) => void
   ): void {
@@ -426,7 +477,7 @@ export class Tile {
       if (i === 5) {
         y_level = Math.min(y_level, this.area.getMaxY());
         dir = dir === "r" ? "l" : "r"; // swap direction
-        console.log(`  turning... ${i} ${next_tile} ${y_level} ${dir}`);
+        // console.log(`  turning... ${i} ${next_tile} ${y_level} ${dir}`);
       }
       next_tile.sweep(dir, y_level, callback);
     }
@@ -445,5 +496,89 @@ export class Tile {
 
   public toString(): string {
     return `{${this.area} / ${this.block || "spacer"}}`;
+  }
+
+  public updateMutualStitches(other: Tile): void {
+    const this_area = {
+      minX: this.area.getMinX(),
+      minY: this.area.getMinY(),
+      maxX: this.area.getMaxX(),
+      maxY: this.area.getMaxY(),
+    };
+    const other_area = {
+      minX: other.area.getMinX(),
+      minY: other.area.getMinY(),
+      maxX: other.area.getMaxX(),
+      maxY: other.area.getMaxY(),
+    };
+    const adjacent = {
+      t: this_area.minY === other_area.maxY + 1, // other is above this
+      r: this_area.maxX + 1 === other_area.minX, // other is to right of this
+      b: this_area.maxY + 1 === other_area.minY, // other is below this
+      l: this_area.minX === other_area.maxX + 1, // other is to left of this
+    };
+
+    const this_overlap = {
+      // this tile overlaps other's edges
+      t: this_area.minY <= other_area.minY && this_area.maxY >= other_area.minY,
+      r: this_area.minX <= other_area.maxX && this_area.maxX >= other_area.maxX,
+      b: this_area.minY <= other_area.maxY && this_area.maxY >= other_area.maxY,
+      l: this_area.minX <= other_area.minX && this_area.maxX >= other_area.minX,
+    };
+    if (adjacent.l && this_overlap.t) {
+      other.tr = this;
+    }
+    if (adjacent.r && this_overlap.t) {
+      other.tl = this;
+    }
+    if (adjacent.b && this_overlap.r) {
+      other.rt = this;
+    }
+    if (adjacent.t && this_overlap.r) {
+      other.rb = this;
+    }
+    if (adjacent.l && this_overlap.b) {
+      other.br = this;
+    }
+    if (adjacent.r && this_overlap.b) {
+      other.bl = this;
+    }
+    if (adjacent.b && this_overlap.l) {
+      other.lt = this;
+    }
+    if (adjacent.t && this_overlap.l) {
+      other.lb = this;
+    }
+    const othr_overlap = {
+      // neighbour overlaps new tile's edges
+      t: other_area.minY <= this_area.minY && other_area.maxY >= this_area.minY,
+      r: other_area.minX <= this_area.maxX && other_area.maxX >= this_area.maxX,
+      b: other_area.minY <= this_area.maxY && other_area.maxY >= this_area.maxY,
+      l: other_area.minX <= this_area.minX && other_area.maxX >= this_area.minX,
+    };
+    if (adjacent.r && othr_overlap.t) {
+      this.tr = other;
+    }
+    if (adjacent.l && othr_overlap.t) {
+      this.tl = other;
+    }
+    if (adjacent.t && othr_overlap.r) {
+      this.rt = other;
+    }
+    if (adjacent.b && othr_overlap.r) {
+      this.rb = other;
+    }
+    if (adjacent.r && othr_overlap.b) {
+      this.br = other;
+    }
+    if (adjacent.l && othr_overlap.b) {
+      this.bl = other;
+    }
+    if (adjacent.t && othr_overlap.l) {
+      this.lt = other;
+    }
+    if (adjacent.b && othr_overlap.l) {
+      this.lb = other;
+    }
   }
 }

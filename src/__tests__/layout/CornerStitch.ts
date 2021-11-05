@@ -1,186 +1,230 @@
-import * as Fs from "fs";
-import Block from "../../core/Block";
 import CornerStitch, { Tile } from "../../layout/CornerStitch";
 import Domain from "../../core/Domain";
-import DrawCornerStitch from "../../examples/corner-stitch/DrawCornerStitch";
 import { Area, Point } from "geom-api";
-// import Point from "../core/Point";
-// import { renderToString } from "react-dom/server";
 
-test("basic", () => {
-  const cs: CornerStitch = setupPattern();
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeTile: (expected: Tile) => CustomMatcherResult;
+    }
+  }
+}
 
-  const draw: DrawCornerStitch = new DrawCornerStitch(cs);
-
-  const head =
-    "<!DOCTYPE html>" +
-    '<html lang="en">' +
-    "<head>" +
-    "<title>Corner Stitch Test</title>" +
-    '<meta charset="utf-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />' +
-    '<meta name="author" content="Stephen Francis">' +
-    '<meta http-equiv="X-UA-Compatible" content="IE=edge" />' +
-    '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />' +
-    '<link rel="stylesheet" href="../public/svg.css" />' +
-    "</head>" +
-    "<body>" +
-    "<h1>Corner Stitch Test</h1>";
-  const foot = "</body></html>";
-
-  Fs.writeFileSync("./build/cs.html", head + draw.draw().getMarkup() + foot, {
-    encoding: "utf8",
-  });
-
-  cs.checkStitches();
-
-  cs.sweep((tile: Tile) => {
-    console.log(`sweep at ${tile}`);
-  });
+expect.extend({
+  toBeTile(received: Tile, expected: Tile) {
+    const rcvd_str = received && received.toString();
+    const expt_str = expected && expected.toString();
+    return {
+      pass: rcvd_str === expt_str,
+      message: () => `expected ${rcvd_str} to be ${expt_str}`,
+    };
+  },
 });
 
-const setupPattern = () => {
+test("updateMutualStitches", () => {
+  const ud = undefined;
+  const cs: CornerStitch = new CornerStitch(new Point(1000, 500));
+  const t1 = cs.addTile(new Area(new Point(10, 10), new Point(19, 19)));
+  const t2 = cs.addTile(new Area(new Point(20, 10), new Point(29, 19)));
+  const t3 = cs.addTile(new Area(new Point(21, 20), new Point(30, 29)));
+  const t4 = cs.addTile(new Area(new Point(11, 0), new Point(20, 9)));
+  expect(t1.getAllStitches()).toEqual([ud, ud, ud, ud, ud, ud, ud, ud]);
+  expect(t2.getAllStitches()).toEqual([ud, ud, ud, ud, ud, ud, ud, ud]);
+  t1.updateMutualStitches(t2);
+  expect(t1.getAllStitches()).toEqual([ud, ud, t2, t2, ud, ud, ud, ud]);
+  expect(t2.getAllStitches()).toEqual([ud, ud, ud, ud, ud, ud, t1, t1]);
+  t3.updateMutualStitches(t2);
+  expect(t1.getAllStitches()).toEqual([ud, ud, t2, t2, ud, ud, ud, ud]);
+  expect(t2.getAllStitches()).toEqual([ud, ud, ud, ud, t3, ud, t1, t1]);
+  expect(t3.getAllStitches()).toEqual([t2, ud, ud, ud, ud, ud, ud, ud]);
+  t4.updateMutualStitches(t1);
+  t4.updateMutualStitches(t2);
+  expect(t1.getAllStitches()).toEqual([ud, t4, t2, t2, ud, ud, ud, ud]);
+  expect(t2.getAllStitches()).toEqual([t4, ud, ud, ud, t3, ud, t1, t1]);
+  expect(t4.getAllStitches()).toEqual([ud, ud, ud, ud, t2, t1, ud, ud]);
+});
+
+test("adding one block in centre", () => {
   const d = new Domain();
   const cs: CornerStitch = new CornerStitch(new Point(1000, 500));
-  const block_tile_1: Tile = cs.addTile(
-    new Area(new Point(200, 100), new Point(399, 299)),
-    d.addBlock("Block 1")
-  );
-  const block_tile_2: Tile = cs.addTile(
-    new Area(new Point(600, 200), new Point(799, 399)),
-    d.addBlock("Block 2")
+  cs.addBlock(
+    new Area(new Point(400, 200), new Point(600, 400)),
+    d.addBlock("block A")
   );
 
-  const spacer_1 = cs.getFirstTile();
-  spacer_1.setArea(
-    new Area(spacer_1.getArea().getTopLeft(), new Point(999, 99))
-  );
-  // block_tile_1.setCornerTileRef("lt", spacer_1);
-  // block_tile_1.setCornerTileRef("rt", spacer_1);
+  const sp1 = cs.findTileContaining(new Point(0, 0));
+  const sp2 = cs.findTileContaining(new Point(399, 200));
+  const bl1 = cs.findTileContaining(new Point(400, 400));
+  const sp3 = cs.findTileContaining(new Point(1000, 400));
+  const sp4 = cs.findTileContaining(new Point(1000, 500));
 
-  const spacer_2 = cs.addTile(new Area(new Point(0, 100), new Point(199, 299)));
-  // spacer_1.setCornerTileRef("lb", spacer_2);
-  // spacer_2.setCornerTileRef("lt", spacer_1);
-  // spacer_2.setCornerTileRef("rt", spacer_1);
-  // spacer_2.setCornerTileRef("tr", block_tile_1);
-  // block_tile_1.setCornerTileRef("tl", spacer_2);
-  // spacer_2.setCornerTileRef("br", block_tile_1);
-  // block_tile_1.setCornerTileRef("bl", spacer_2);
+  expect(sp1.getArea().getAttributes()).toEqual([0, 0, 1000, 199]); // min x, min y, width, height
+  expect(sp1.getStitch("lt")).toBe(undefined);
+  expect(sp1.getStitch("rt")).toBe(undefined);
+  expect(sp1.getStitch("tl")).toBe(undefined);
+  expect(sp1.getStitch("bl")).toBe(undefined);
+  expect(sp1.getStitch("tr")).toBe(undefined);
+  expect(sp1.getStitch("br")).toBe(undefined);
+  expect(sp1.getStitch("lb")).toBeTile(sp2);
+  expect(sp1.getStitch("rb")).toBeTile(sp3);
 
-  const spacer_3 = cs.addTile(
-    new Area(new Point(400, 100), new Point(999, 199))
-  );
-  // spacer_1.setCornerTileRef("rb", spacer_3);
-  // spacer_3.setCornerTileRef("rt", spacer_1);
-  // spacer_3.setCornerTileRef("lt", spacer_1);
-  // spacer_3.setCornerTileRef("tl", block_tile_1);
-  // block_tile_1.setCornerTileRef("tr", spacer_3);
-  // spacer_3.setCornerTileRef("bl", block_tile_1);
+  expect(sp2.getArea().getAttributes()).toEqual([0, 200, 399, 200]); // min x, min y, width, height
+  expect(sp2.getStitch("lt")).toBeTile(sp1);
+  expect(sp2.getStitch("rt")).toBeTile(sp1);
+  expect(sp2.getStitch("tl")).toBe(undefined);
+  expect(sp2.getStitch("bl")).toBe(undefined);
+  expect(sp2.getStitch("tr")).toBeTile(bl1);
+  expect(sp2.getStitch("br")).toBeTile(bl1);
+  expect(sp2.getStitch("lb")).toBeTile(sp4);
+  expect(sp2.getStitch("rb")).toBeTile(sp4);
 
-  const spacer_4 = cs.addTile(
-    new Area(new Point(400, 200), new Point(599, 299))
-  );
-  // spacer_4.setCornerTileRef("lt", spacer_3);
-  // spacer_3.setCornerTileRef("lb", spacer_4);
-  // spacer_4.setCornerTileRef("rt", spacer_3);
+  expect(bl1.getArea().getAttributes()).toEqual([400, 200, 200, 200]); // min x, min y, width, height
+  expect(bl1.getStitch("lt")).toBeTile(sp1);
+  expect(bl1.getStitch("rt")).toBeTile(sp1);
+  expect(bl1.getStitch("tl")).toBeTile(sp2);
+  expect(bl1.getStitch("bl")).toBeTile(sp2);
+  expect(bl1.getStitch("tr")).toBeTile(sp3);
+  expect(bl1.getStitch("br")).toBeTile(sp3);
+  expect(bl1.getStitch("lb")).toBeTile(sp4);
+  expect(bl1.getStitch("rb")).toBeTile(sp4);
 
-  const spacer_5 = cs.addTile(
-    new Area(new Point(800, 200), new Point(999, 399))
-  );
+  expect(sp3.getArea().getAttributes()).toEqual([601, 200, 399, 200]); // min x, min y, width, height
+  expect(sp3.getStitch("lt")).toBeTile(sp1);
+  expect(sp3.getStitch("rt")).toBeTile(sp1);
+  expect(sp3.getStitch("tl")).toBeTile(bl1);
+  expect(sp3.getStitch("bl")).toBeTile(bl1);
+  expect(sp3.getStitch("tr")).toBe(undefined);
+  expect(sp3.getStitch("br")).toBe(undefined);
+  expect(sp3.getStitch("lb")).toBeTile(sp4);
+  expect(sp3.getStitch("rb")).toBeTile(sp4);
 
-  const spacer_6 = cs.addTile(new Area(new Point(0, 300), new Point(599, 399)));
+  expect(sp4.getArea().getAttributes()).toEqual([0, 401, 1000, 99]); // min x, min y, width, height
+  expect(sp4.getStitch("lt")).toBeTile(sp2);
+  expect(sp4.getStitch("rt")).toBeTile(sp3);
+  expect(sp4.getStitch("tl")).toBe(undefined);
+  expect(sp4.getStitch("bl")).toBe(undefined);
+  expect(sp4.getStitch("tr")).toBe(undefined);
+  expect(sp4.getStitch("br")).toBe(undefined);
+  expect(sp4.getStitch("lb")).toBe(undefined);
+  expect(sp4.getStitch("rb")).toBe(undefined);
+});
 
-  const spacer_7 = cs.addTile(new Area(new Point(0, 400), new Point(999, 499)));
+test("adding two blocks", () => {
+  const d = new Domain();
+  const cs: CornerStitch = new CornerStitch(new Point(1000, 500));
+  cs.addBlock(
+    new Area(new Point(400, 200), new Point(600, 400)),
+    d.addBlock("block A")
+  );
+  cs.addBlock(
+    new Area(new Point(610, 390), new Point(800, 450)),
+    d.addBlock("block B")
+  );
+  // console.log(cs.checkStitches().join("\n"));
 
-  spacer_1.setAllCornerTiles(
-    null,
-    null,
-    null,
-    null,
-    spacer_3,
-    spacer_2,
-    null,
-    null
-  );
-  spacer_2.setAllCornerTiles(
-    spacer_1,
-    spacer_1,
-    block_tile_1,
-    block_tile_1,
-    spacer_6,
-    spacer_6,
-    null,
-    null
-  );
-  block_tile_1.setAllCornerTiles(
-    spacer_1,
-    spacer_1,
-    spacer_3,
-    spacer_4,
-    spacer_6,
-    spacer_6,
-    spacer_2,
-    spacer_2
-  );
-  spacer_3.setAllCornerTiles(
-    spacer_1,
-    spacer_1,
-    null,
-    null,
-    spacer_5,
-    spacer_4,
-    block_tile_1,
-    block_tile_1
-  );
-  spacer_4.setAllCornerTiles(
-    spacer_3,
-    spacer_3,
-    block_tile_2,
-    block_tile_2,
-    spacer_6,
-    spacer_6,
-    block_tile_1,
-    block_tile_1
-  );
-  block_tile_2.setAllCornerTiles(
-    spacer_3,
-    spacer_3,
-    spacer_5,
-    spacer_5,
-    spacer_7,
-    spacer_7,
-    spacer_6,
-    spacer_4
-  );
-  spacer_5.setAllCornerTiles(
-    spacer_3,
-    spacer_3,
-    null,
-    null,
-    spacer_7,
-    spacer_7,
-    block_tile_2,
-    block_tile_2
-  );
-  spacer_6.setAllCornerTiles(
-    spacer_2,
-    spacer_4,
-    block_tile_2,
-    block_tile_2,
-    spacer_7,
-    spacer_7,
-    null,
-    null
-  );
-  spacer_7.setAllCornerTiles(
-    spacer_6,
-    spacer_5,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null
-  );
-  return cs;
-};
+  // cs.forEachTile((t) =>
+  //   console.log(
+  //     `${t.toString()} ... ${cs.findTileContaining(t.getArea().getTopLeft())}`
+  //   )
+  // );
+
+  const sp1 = cs.findTileContaining(new Point(0, 0));
+  const sp2 = cs.findTileContaining(new Point(399, 200));
+  const bl1 = cs.findTileContaining(new Point(400, 400));
+  const sp3 = cs.findTileContaining(new Point(1000, 389));
+  const sp4 = cs.findTileContaining(new Point(601, 390));
+  const bl2 = cs.findTileContaining(new Point(610, 450));
+  const sp5 = cs.findTileContaining(new Point(801, 390));
+  const sp6 = cs.findTileContaining(new Point(0, 401));
+  const sp7 = cs.findTileContaining(new Point(1000, 451));
+
+  expect(sp1.getArea().getAttributes()).toEqual([0, 0, 1000, 199]); // min x, min y, width, height
+  expect(sp1.getStitch("lt")).toBe(undefined);
+  expect(sp1.getStitch("rt")).toBe(undefined);
+  expect(sp1.getStitch("tl")).toBe(undefined);
+  expect(sp1.getStitch("bl")).toBe(undefined);
+  expect(sp1.getStitch("tr")).toBe(undefined);
+  expect(sp1.getStitch("br")).toBe(undefined);
+  expect(sp1.getStitch("lb")).toBeTile(sp2);
+  expect(sp1.getStitch("rb")).toBeTile(sp3);
+
+  expect(sp2.getArea().getAttributes()).toEqual([0, 200, 399, 200]); // min x, min y, width, height
+  expect(sp2.getStitch("lt")).toBeTile(sp1);
+  expect(sp2.getStitch("rt")).toBeTile(sp1);
+  expect(sp2.getStitch("tl")).toBe(undefined);
+  expect(sp2.getStitch("bl")).toBe(undefined);
+  expect(sp2.getStitch("tr")).toBeTile(bl1);
+  expect(sp2.getStitch("br")).toBeTile(bl1);
+  expect(sp2.getStitch("lb")).toBeTile(sp6);
+  expect(sp2.getStitch("rb")).toBeTile(sp6);
+
+  expect(bl1.getArea().getAttributes()).toEqual([400, 200, 200, 200]); // min x, min y, width, height
+  expect(bl1.getStitch("lt")).toBeTile(sp1);
+  expect(bl1.getStitch("rt")).toBeTile(sp1);
+  expect(bl1.getStitch("tl")).toBeTile(sp2);
+  expect(bl1.getStitch("bl")).toBeTile(sp2);
+  expect(bl1.getStitch("tr")).toBeTile(sp3);
+  expect(bl1.getStitch("br")).toBeTile(sp4);
+  expect(bl1.getStitch("lb")).toBeTile(sp6);
+  expect(bl1.getStitch("rb")).toBeTile(sp6);
+
+  expect(sp3.getArea().getAttributes()).toEqual([601, 200, 399, 189]); // min x, min y, width, height
+  expect(sp3.getStitch("lt")).toBeTile(sp1);
+  expect(sp3.getStitch("rt")).toBeTile(sp1);
+  expect(sp3.getStitch("tl")).toBeTile(bl1);
+  expect(sp3.getStitch("bl")).toBeTile(bl1);
+  expect(sp3.getStitch("tr")).toBe(undefined);
+  expect(sp3.getStitch("br")).toBe(undefined);
+  expect(sp3.getStitch("lb")).toBeTile(sp4);
+  expect(sp3.getStitch("rb")).toBeTile(sp5);
+
+  expect(sp4.getArea().getAttributes()).toEqual([601, 390, 8, 10]); // min x, min y, width, height
+  expect(sp4.getStitch("lt")).toBeTile(sp3);
+  expect(sp4.getStitch("rt")).toBeTile(sp3);
+  expect(sp4.getStitch("tl")).toBeTile(bl1);
+  expect(sp4.getStitch("bl")).toBeTile(bl1);
+  expect(sp4.getStitch("tr")).toBeTile(bl2);
+  expect(sp4.getStitch("br")).toBeTile(bl2);
+  expect(sp4.getStitch("lb")).toBeTile(sp6);
+  expect(sp4.getStitch("rb")).toBeTile(sp6);
+
+  expect(bl2.getArea().getAttributes()).toEqual([610, 390, 190, 60]); // min x, min y, width, height
+  expect(bl2.getStitch("lt")).toBeTile(sp3);
+  expect(bl2.getStitch("rt")).toBeTile(sp3);
+  expect(bl2.getStitch("tl")).toBeTile(sp4);
+  expect(bl2.getStitch("bl")).toBeTile(sp6);
+  expect(bl2.getStitch("tr")).toBeTile(sp5);
+  expect(bl2.getStitch("br")).toBeTile(sp5);
+  expect(bl2.getStitch("lb")).toBeTile(sp7);
+  expect(bl2.getStitch("rb")).toBeTile(sp7);
+
+  expect(sp5.getArea().getAttributes()).toEqual([801, 390, 199, 60]); // min x, min y, width, height
+  expect(sp5.getStitch("lt")).toBeTile(sp3);
+  expect(sp5.getStitch("rt")).toBeTile(sp3);
+  expect(sp5.getStitch("tl")).toBeTile(bl2);
+  expect(sp5.getStitch("bl")).toBeTile(bl2);
+  expect(sp5.getStitch("tr")).toBe(undefined);
+  expect(sp5.getStitch("br")).toBe(undefined);
+  expect(sp5.getStitch("lb")).toBeTile(sp7);
+  expect(sp5.getStitch("rb")).toBeTile(sp7);
+
+  expect(sp6.getArea().getAttributes()).toEqual([0, 401, 609, 49]); // min x, min y, width, height
+  expect(sp6.getStitch("lt")).toBeTile(sp2);
+  expect(sp6.getStitch("rt")).toBeTile(sp4);
+  expect(sp6.getStitch("tl")).toBe(undefined);
+  expect(sp6.getStitch("bl")).toBe(undefined);
+  expect(sp6.getStitch("tr")).toBeTile(bl2);
+  expect(sp6.getStitch("br")).toBeTile(bl2);
+  expect(sp6.getStitch("lb")).toBeTile(sp7);
+  expect(sp6.getStitch("rb")).toBeTile(sp7);
+
+  expect(sp7.getArea().getAttributes()).toEqual([0, 451, 1000, 49]); // min x, min y, width, height
+  expect(sp7.getStitch("lt")).toBeTile(sp6);
+  expect(sp7.getStitch("rt")).toBeTile(sp5);
+  expect(sp7.getStitch("tl")).toBe(undefined);
+  expect(sp7.getStitch("bl")).toBe(undefined);
+  expect(sp7.getStitch("tr")).toBe(undefined);
+  expect(sp7.getStitch("br")).toBe(undefined);
+  expect(sp7.getStitch("lb")).toBe(undefined);
+  expect(sp7.getStitch("rb")).toBe(undefined);
+});
