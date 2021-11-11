@@ -13,3 +13,13 @@
   text-align: center;
   color: darkblue;
 }
+
+.select {
+  stroke: red;
+  stroke-width: 1px;
+  fill: transparent;
+}
+
+.coords {
+  font-size: 10px;
+}

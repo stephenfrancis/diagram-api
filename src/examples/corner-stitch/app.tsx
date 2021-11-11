@@ -1,182 +1,53 @@
 import * as React from "react";
 import CornerStitch, { Tile } from "../../layout/CornerStitch";
-import Domain, { Phase } from "../../core/Domain";
+import Domain from "../../core/Domain";
 import { Area, Point } from "geom-api";
 import CornerStitchRender from "../../react/CornerStitchRender";
 
+import styles from "./styles.css";
+
 interface Props {}
 
-
-const manualTileSetup = (cs: CornerStitch, d: Domain) => {
-  const block_tile_1: Tile = cs.addTile(
-    new Area(new Point(200, 100), new Point(399, 299)),
-    d.addBlock("Block 1")
-  );
-  const block_tile_2: Tile = cs.addTile(
-    new Area(new Point(600, 200), new Point(799, 399)),
-    d.addBlock("Block 2")
-  );
-
-  const spacer_1 = cs.getFirstTile();
-  spacer_1.setArea(
-    new Area(spacer_1.getArea().getTopLeft(), new Point(999, 99))
-  );
-  // block_tile_1.setCornerTileRef("lt", spacer_1);
-  // block_tile_1.setCornerTileRef("rt", spacer_1);
-
-  const spacer_2 = cs.addTile(new Area(new Point(0, 100), new Point(199, 299)));
-  // spacer_1.setCornerTileRef("lb", spacer_2);
-  // spacer_2.setCornerTileRef("lt", spacer_1);
-  // spacer_2.setCornerTileRef("rt", spacer_1);
-  // spacer_2.setCornerTileRef("tr", block_tile_1);
-  // block_tile_1.setCornerTileRef("tl", spacer_2);
-  // spacer_2.setCornerTileRef("br", block_tile_1);
-  // block_tile_1.setCornerTileRef("bl", spacer_2);
-
-  const spacer_3 = cs.addTile(
-    new Area(new Point(400, 100), new Point(999, 199))
-  );
-  // spacer_1.setCornerTileRef("rb", spacer_3);
-  // spacer_3.setCornerTileRef("rt", spacer_1);
-  // spacer_3.setCornerTileRef("lt", spacer_1);
-  // spacer_3.setCornerTileRef("tl", block_tile_1);
-  // block_tile_1.setCornerTileRef("tr", spacer_3);
-  // spacer_3.setCornerTileRef("bl", block_tile_1);
-
-  const spacer_4 = cs.addTile(
-    new Area(new Point(400, 200), new Point(599, 299))
-  );
-  // spacer_4.setCornerTileRef("lt", spacer_3);
-  // spacer_3.setCornerTileRef("lb", spacer_4);
-  // spacer_4.setCornerTileRef("rt", spacer_3);
-
-  const spacer_5 = cs.addTile(
-    new Area(new Point(800, 200), new Point(999, 399))
-  );
-
-  const spacer_6 = cs.addTile(new Area(new Point(0, 300), new Point(599, 399)));
-
-  const spacer_7 = cs.addTile(new Area(new Point(0, 400), new Point(999, 499)));
-
-  spacer_1.setAllStitches(
-    null,
-    null,
-    null,
-    null,
-    spacer_3,
-    spacer_2,
-    null,
-    null
-  );
-  spacer_2.setAllStitches(
-    spacer_1,
-    spacer_1,
-    block_tile_1,
-    block_tile_1,
-    spacer_6,
-    spacer_6,
-    null,
-    null
-  );
-  block_tile_1.setAllStitches(
-    spacer_1,
-    spacer_1,
-    spacer_3,
-    spacer_4,
-    spacer_6,
-    spacer_6,
-    spacer_2,
-    spacer_2
-  );
-  spacer_3.setAllStitches(
-    spacer_1,
-    spacer_1,
-    null,
-    null,
-    spacer_5,
-    spacer_4,
-    block_tile_1,
-    block_tile_1
-  );
-  spacer_4.setAllStitches(
-    spacer_3,
-    spacer_3,
-    block_tile_2,
-    block_tile_2,
-    spacer_6,
-    spacer_6,
-    block_tile_1,
-    block_tile_1
-  );
-  block_tile_2.setAllStitches(
-    spacer_3,
-    spacer_3,
-    spacer_5,
-    spacer_5,
-    spacer_7,
-    spacer_7,
-    spacer_6,
-    spacer_4
-  );
-  spacer_5.setAllStitches(
-    spacer_3,
-    spacer_3,
-    null,
-    null,
-    spacer_7,
-    spacer_7,
-    block_tile_2,
-    block_tile_2
-  );
-  spacer_6.setAllStitches(
-    spacer_2,
-    spacer_4,
-    block_tile_2,
-    block_tile_2,
-    spacer_7,
-    spacer_7,
-    null,
-    null
-  );
-  spacer_7.setAllStitches(
-    spacer_6,
-    spacer_5,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null
-  );
-}
 
 const autoTileSetup = (cs: CornerStitch, d: Domain) => {
   cs.addBlock(new Area(new Point(400, 200), new Point(600, 400)),
     d.addBlock("block A"));
   cs.addBlock(new Area(new Point(610, 390), new Point(800, 450)),
     d.addBlock("block B"));
+  cs.addBlock(new Area(new Point(100, 70), new Point(200, 270)),
+    d.addBlock("block C"));
   console.log(cs.checkStitches().join("\n"));
 }
 
 const App: React.FC<Props> = (props) => {
   const [cornerStitch, setCornerStitch] = React.useState<CornerStitch>(null);
+  const [domain, setDomain] = React.useState<Domain>(null);
 
-  React.useEffect(() => {
+  const addBlock = (left: number, top: number, width: number, height: number, label: string) => {
+    console.log(`${left}, ${top}, ${width}, ${height}, ${label}`)
+    cornerStitch.addBlock(new Area(new Point(left, top), new Point(left + width, top + height)),
+      domain.addBlock(label));
+  }
+
+  const clear = () => {
+    console.log(`clear`)
     const d = new Domain();
     const cs: CornerStitch = new CornerStitch(new Point(1000, 500));
-    // manualTileSetup(cs, d);
-    autoTileSetup(cs, d);
-    
-
+    // autoTileSetup(cs, d);
+    setDomain(d);
     setCornerStitch(cs);
-  }, []);
+  }
+
+
+  React.useEffect(clear, []);
 
   return (
-    <div>{cornerStitch && renderCornerStitch(cornerStitch)}</div>
+    // <div>{cornerStitch && renderCornerStitch(cornerStitch)}</div>
+    <div className={styles.container}>
+      {cornerStitch && <CornerStitchRender addBlock={addBlock} cs={cornerStitch} />}
+    </div>
   );
-
 }
-
 
 const renderCornerStitch = (cornerStitch: CornerStitch) => {
   const points = {
@@ -207,7 +78,7 @@ const renderCornerStitch = (cornerStitch: CornerStitch) => {
   }
   return (
   <>
-    <CornerStitchRender cs={cornerStitch} />
+    <CornerStitchRender cs={cornerStitch} addBlock={() => {}} />
     <ul>
       <li>findSolidTileWithinArea({output(points.A)}, {output(points.B)}): {output(cornerStitch.findSolidTileWithinArea(new Area(points.A, points.B)))}</li>
       <li>findTileContaining({output(points.E)}): {output(cornerStitch.findTileContaining(points.E))}</li>

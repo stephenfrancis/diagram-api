@@ -25,15 +25,22 @@ export default class CornerStitch implements NonIterativeLayout {
   }
 
   public addBlock(area: Area, block: Block): Tile {
-    if (this.findSolidTileWithinArea(area)) {
-      throw new Error(`area ${area} already contains a solid tile`);
+    const solid_tile = this.findSolidTileWithinArea(area);
+    if (solid_tile) {
+      throw new Error(
+        `area ${area} already contains a solid tile: ${solid_tile}`
+      );
     }
     const block_tile: Tile = this.addTile(area, block);
     const orig_above = this.findTileContaining(area.getTopLeft());
-    orig_above.shrinkToFitAbove(this, block_tile);
-    const spacer_below = this.findTileContaining(
-      area.getBottomRight()
-    ).shrinkToFitBelow(this, block_tile);
+    if (orig_above && orig_above.getArea().getMinY() < area.getMinY()) {
+      orig_above.shrinkToFitAbove(this, block_tile);
+    }
+    const orig_below = this.findTileContaining(area.getBottomRight());
+    let spacer_below;
+    if (orig_below && orig_below.getArea().getMaxY() > area.getMaxY()) {
+      spacer_below = orig_below.shrinkToFitBelow(this, block_tile);
+    }
     let spacer_overlapping_block = this.findTileContaining(area.getTopLeft());
     let above_left = orig_above;
     let above_right = orig_above;
@@ -53,7 +60,9 @@ export default class CornerStitch implements NonIterativeLayout {
       spacer_overlapping_block &&
       spacer_overlapping_block.getArea().getMaxY() <= area.getMaxY()
     );
-    spacer_below.tidyUpBottom(block_tile, above_left, above_right);
+    if (spacer_below) {
+      spacer_below.tidyUpBottom(block_tile, above_left, above_right);
+    }
     return block_tile;
   }
 
@@ -221,13 +230,19 @@ export class Tile {
     if (this.isSolid()) {
       out = this;
     } else if (
-      this.area.getMaxX() >= area.getMinX() &&
+      this.area.getMaxX() < area.getMaxX() &&
       this.br &&
       this.br.isSolid()
     ) {
       out = this.br;
-    } else if (this.area.getMinY() > area.getMinY()) {
-      out = this.lt.findSolidTileWithinArea(area);
+    } else {
+      let right: Tile = this.lt;
+      while (right && right.getArea().getMaxX() < area.getMinX()) {
+        right = right.br;
+      }
+      if (right) {
+        out = right.findSolidTileWithinArea(area);
+      }
     }
     return out;
   }
@@ -395,6 +410,7 @@ export class Tile {
 
   public shrinkToFitBelow(cs: CornerStitch, block_tile: Tile): Tile {
     const orig_area = this.area;
+    const orig_neighbours = this.getNeighbours();
     this.area = new Area(
       this.area.getTopLeft(),
       new Point(this.area.getMaxX(), block_tile.area.getMaxY())
@@ -405,6 +421,9 @@ export class Tile {
         orig_area.getBottomRight()
       )
     );
+    orig_neighbours.forEach((neighbour) => {
+      neighbour.updateMutualStitches(new_spacer);
+    });
     this.updateMutualStitches(new_spacer);
     return new_spacer;
   }
@@ -421,11 +440,23 @@ export class Tile {
       this.area.getTopLeft(),
       new Point(block_tile.area.getMinX() - 1, this.area.getMaxY())
     );
+    let new_left: Tile = this;
+    if (
+      this.area.getMinX() === above_left.area.getMinX() &&
+      this.area.getMaxX() === above_left.area.getMaxX()
+    ) {
+      above_left.area = new Area(
+        above_left.area.getTopLeft(),
+        this.area.getBottomRight()
+      );
+      new_left = above_left;
+      cs.removeTile(this);
+    }
     const new_area = new Area(
       new Point(block_tile.area.getMaxX() + 1, orig_area.getMinY()),
       orig_area.getBottomRight()
     );
-    let out;
+    let new_right: Tile;
     if (
       new_area.getMinX() === above_right.area.getMinX() &&
       new_area.getMaxX() === above_right.area.getMaxX()
@@ -434,21 +465,24 @@ export class Tile {
         above_right.area.getTopLeft(),
         new_area.getBottomRight()
       );
-      out = above_right;
+      new_right = above_right;
     } else {
-      out = cs.addTile(new_area);
+      new_right = cs.addTile(new_area);
     }
-    // console.log(`splitAroundBlock(${orig_area}) -> ${this.area} + ${out.area}`);
+    // console.log(
+    //   `splitAroundBlock(${orig_area}) -> ${new_left.area} + ${new_right.area}`
+    // );
     // console.log(`  neighbours: ${orig_neighbours}`);
-    this.updateMutualStitches(out);
-    block_tile.updateMutualStitches(out);
-    this.updateMutualStitches(block_tile);
+    new_left.updateMutualStitches(new_right);
+    block_tile.updateMutualStitches(new_right);
+    new_left.updateMutualStitches(block_tile);
     orig_neighbours.forEach((neighbour) => {
-      neighbour.updateMutualStitches(this);
+      neighbour.updateMutualStitches(new_left);
       neighbour.updateMutualStitches(block_tile);
-      neighbour.updateMutualStitches(out);
+      neighbour.updateMutualStitches(new_right);
     });
-    return out;
+    block_tile.br = new_right; // fix neighbour-finding algo in next pass
+    return new_right;
   }
 
   public sweep(
@@ -495,7 +529,9 @@ export class Tile {
   }
 
   public toString(): string {
-    return `{${this.area} / ${this.block || "spacer"}}`;
+    return `{${this.area} / ${
+      (this.block && this.block.getName()) || "spacer"
+    }}`;
   }
 
   public updateMutualStitches(other: Tile): void {
