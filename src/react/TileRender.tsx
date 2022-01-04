@@ -3,7 +3,7 @@ import { Tile } from "../layout/CornerStitch";
 
 import styles from "./BlockRender.css";
 
-const PADDING = 5;
+const PADDING = 1;
 
 interface Props {
   tile: Tile;

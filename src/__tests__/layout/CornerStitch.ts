@@ -408,3 +408,52 @@ test("adding three blocks", () => {
   expect(sp10.getStitch("lb")).toBe(undefined);
   expect(sp10.getStitch("rb")).toBe(undefined);
 });
+
+test("top edge (at y=1)", () => {
+  const d = new Domain();
+  const cs: CornerStitch = new CornerStitch(new Point(10, 10));
+  cs.addBlock(
+    new Area(new Point(6, 4), new Point(8, 8)),
+    d.addBlock("block A")
+  );
+  cs.addBlock(
+    new Area(new Point(2, 1), new Point(4, 5)),
+    d.addBlock("block B")
+  );
+
+  expect(cs.checkStitches()).toEqual([]);
+});
+
+test("top edge (at y=0)", () => {
+  const d = new Domain();
+  const cs: CornerStitch = new CornerStitch(new Point(10, 10));
+  cs.addBlock(
+    new Area(new Point(6, 4), new Point(8, 8)),
+    d.addBlock("block A")
+  );
+  cs.addBlock(
+    new Area(new Point(2, 0), new Point(4, 5)),
+    d.addBlock("block B")
+  );
+  cs.addBlock(
+    new Area(new Point(2, 7), new Point(4, 9)),
+    d.addBlock("block C")
+  );
+
+  expect(cs.checkStitches()).toEqual([]);
+});
+
+test("new block touches old block", () => {
+  const d = new Domain();
+  const cs: CornerStitch = new CornerStitch(new Point(10, 10));
+  cs.addBlock(
+    new Area(new Point(6, 4), new Point(8, 8)),
+    d.addBlock("block A")
+  );
+  cs.addBlock(
+    new Area(new Point(2, 2), new Point(5, 5)),
+    d.addBlock("block B")
+  );
+
+  expect(cs.checkStitches()).toEqual([]);
+});

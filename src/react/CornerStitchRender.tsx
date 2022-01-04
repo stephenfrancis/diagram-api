@@ -9,6 +9,9 @@ interface Props {
   cs: CornerStitch;
 }
 
+const SCALE_X = 5;
+const SCALE_Y = 5;
+
 const Main: React.FC<Props> = (props) => {
   const [count, setCount] = React.useState<number>(1);
   const svg_ref = React.useRef<SVGSVGElement>();
@@ -18,8 +21,8 @@ const Main: React.FC<Props> = (props) => {
       <TileRender tile={tile} key={tile.getName()} />
     );
   });
-  const width = props.cs.getArea().getBottomRight().getX() - props.cs.getArea().getTopLeft().getX();
-  const height = props.cs.getArea().getBottomRight().getY() - props.cs.getArea().getTopLeft().getY();
+  const width = props.cs.getArea().getBottomRight().getX();
+  const height = props.cs.getArea().getBottomRight().getY();
 
   const redraw = () => {
     setCount(c => c + 1);
@@ -27,10 +30,12 @@ const Main: React.FC<Props> = (props) => {
 
   return (
     <svg
-      width={width}
-      height={height}
+      width={width * SCALE_X}
+      height={height * SCALE_Y}
+      viewBox={`0 0 ${width} ${height}`}
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
+      className={styles.svg}
       ref={svg_ref}
     >
       {blocks}
@@ -52,6 +57,8 @@ interface Points {
   downY: number;
   moveX: number;
   moveY: number;
+  pointX: number;
+  pointY: number;
 }
 
 const AddBlock: React.FC<AddBlockProps> = (props) => {
@@ -62,13 +69,15 @@ const AddBlock: React.FC<AddBlockProps> = (props) => {
     downY: null,
     moveX: null,
     moveY: null,
+    pointX: null,
+    pointY: null,
   });
   const getCoords = (): [number, number, number, number] => {
     return [
-      Math.min(points.current.downX, points.current.moveX),
-      Math.min(points.current.downY, points.current.moveY),
-      Math.abs(points.current.moveX - points.current.downX),
-      Math.abs(points.current.moveY - points.current.downY),
+      Math.min(points.current.downX, points.current.pointX),
+      Math.min(points.current.downY, points.current.pointY),
+      Math.abs(points.current.pointX - points.current.downX),
+      Math.abs(points.current.pointY - points.current.downY),
     ]
   }
 
@@ -76,24 +85,26 @@ const AddBlock: React.FC<AddBlockProps> = (props) => {
     const mouseDown = (event: MouseEvent) => {
       const svg_rect = props.svg_ref.current.getBoundingClientRect();
       if (event.clientX >= svg_rect.x && event.clientX <= svg_rect.right && event.clientY >= svg_rect.y && event.clientY <= svg_rect.bottom) {
-        points.current.downX = Math.round(event.clientX - svg_rect.x);
-        points.current.downY = Math.round(event.clientY - svg_rect.y);
+        points.current.downX = points.current.pointX;
+        points.current.downY = points.current.pointY;
       }
     };
     window.addEventListener("mousedown", mouseDown);
+
     const mouseMove = (event: MouseEvent) => {
-      if (points.current.downX !== null) {
-        setClick(value => value + 1);
-      }
       const svg_rect = props.svg_ref.current.getBoundingClientRect();
-      points.current.moveX = Math.round(event.clientX - svg_rect.x);
-      points.current.moveY = Math.round(event.clientY - svg_rect.y);
+      points.current.pointX = Math.round((event.clientX - svg_rect.x) / SCALE_X);
+      points.current.pointY = Math.round((event.clientY - svg_rect.y) / SCALE_Y);
+      setClick(c => c + 1);
     }
     window.addEventListener("mousemove", mouseMove);
+
     const mouseUp = () => {
       console.log(`mouseup ${JSON.stringify(points.current)}`);
       if (points.current.downX !== null) {
         try {
+          points.current.moveX = points.current.pointX;
+          points.current.moveY = points.current.pointY;
           props.addBlock(...getCoords(), `block ${String.fromCharCode(letter)}`);
           props.redraw();
         } catch (e) {
@@ -125,14 +136,14 @@ const AddBlock: React.FC<AddBlockProps> = (props) => {
     const coords = getCoords();
     return (
       <>
-        {points.current.downX !== null && points.current.moveX !== null && <rect
+        {points.current.downX !== null && <rect
           className={styles.select}
           x={coords[0]}
           y={coords[1]}
           width={coords[2]}
           height={coords[3]}
         />}
-        <text x={900} y={480}>{JSON.stringify(coords)}</text>
+        <text x={5} y={190}>{points.current.pointX}, {points.current.pointY}</text>
       </>
     )
 }

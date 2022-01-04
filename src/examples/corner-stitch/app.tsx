@@ -32,7 +32,7 @@ const App: React.FC<Props> = (props) => {
   const clear = () => {
     console.log(`clear`)
     const d = new Domain();
-    const cs: CornerStitch = new CornerStitch(new Point(1000, 500));
+    const cs: CornerStitch = new CornerStitch(new Point(200, 200));
     // autoTileSetup(cs, d);
     setDomain(d);
     setCornerStitch(cs);

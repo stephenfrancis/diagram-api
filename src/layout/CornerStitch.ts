@@ -33,12 +33,20 @@ export default class CornerStitch implements NonIterativeLayout {
     }
     const block_tile: Tile = this.addTile(area, block);
     const orig_above = this.findTileContaining(area.getTopLeft());
-    if (orig_above && orig_above.getArea().getMinY() < area.getMinY()) {
+    if (
+      orig_above &&
+      orig_above.getArea().getMinY() < area.getMinY() &&
+      area.getMinY() > this.total_area.getMinY()
+    ) {
       orig_above.shrinkToFitAbove(this, block_tile);
     }
     const orig_below = this.findTileContaining(area.getBottomRight());
     let spacer_below;
-    if (orig_below && orig_below.getArea().getMaxY() > area.getMaxY()) {
+    if (
+      orig_below &&
+      orig_below.getArea().getMaxY() > area.getMaxY() &&
+      area.getMaxY() < this.total_area.getMaxY()
+    ) {
       spacer_below = orig_below.shrinkToFitBelow(this, block_tile);
     }
     let spacer_overlapping_block = this.findTileContaining(area.getTopLeft());
@@ -83,7 +91,7 @@ export default class CornerStitch implements NonIterativeLayout {
   public checkStitches(): string[] {
     const collector: string[] = [];
     this.all_tiles.forEach((tile: Tile) => {
-      tile.checkStitches(collector);
+      tile.checkStitches(this.total_area, collector);
     });
     return collector;
   }
@@ -167,16 +175,21 @@ export class Tile {
     );
   }
 
-  private checkStitch(collector: string[], locn: Side, dir: Side): void {
+  private checkStitch(
+    total_area: Area,
+    collector: string[],
+    locn: Side,
+    dir: Side
+  ): void {
     const tile: Tile = this[`${locn}${dir}`];
     if (!tile) {
-      if (dir === "l" && this.area.getMinX() > 0)
+      if (dir === "l" && this.area.getMinX() > total_area.getMinX())
         collector.push(`${this} missing ${locn}${dir}`);
-      if (dir === "r" && this.area.getMaxX() < 999)
+      if (dir === "r" && this.area.getMaxX() < total_area.getMaxX())
         collector.push(`${this} missing ${locn}${dir}`);
-      if (dir === "t" && this.area.getMinY() > 0)
+      if (dir === "t" && this.area.getMinY() > total_area.getMinY())
         collector.push(`${this} missing ${locn}${dir}`);
-      if (dir === "b" && this.area.getMaxY() < 499)
+      if (dir === "b" && this.area.getMaxY() < total_area.getMaxY())
         collector.push(`${this} missing ${locn}${dir}`);
       return;
     }
@@ -214,15 +227,15 @@ export class Tile {
       collector.push(`${this} b${dir} not aligned to ${tile} `);
   }
 
-  public checkStitches(collector: string[]): void {
-    this.checkStitch(collector, "b", "l");
-    this.checkStitch(collector, "b", "r");
-    this.checkStitch(collector, "r", "t");
-    this.checkStitch(collector, "r", "b");
-    this.checkStitch(collector, "t", "l");
-    this.checkStitch(collector, "t", "r");
-    this.checkStitch(collector, "l", "t");
-    this.checkStitch(collector, "l", "b");
+  public checkStitches(total_area: Area, collector: string[]): void {
+    this.checkStitch(total_area, collector, "b", "l");
+    this.checkStitch(total_area, collector, "b", "r");
+    this.checkStitch(total_area, collector, "r", "t");
+    this.checkStitch(total_area, collector, "r", "b");
+    this.checkStitch(total_area, collector, "t", "l");
+    this.checkStitch(total_area, collector, "t", "r");
+    this.checkStitch(total_area, collector, "l", "t");
+    this.checkStitch(total_area, collector, "l", "b");
   }
 
   public findSolidTileWithinArea(area: Area): Tile {
