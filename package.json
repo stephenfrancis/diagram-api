@@ -6,8 +6,10 @@
   "types": "./src/main/Entry.ts",
   "description": "Object Model for Diagrams",
   "scripts": {
+    "build": "cd src/examples && NODE_ENV=production ../../node_modules/.bin/ts-node config/fuse.ts",
     "clean": "rm -f -r build/* .cache/*",
     "compile": "bash -c 'cd src; tsc'",
+    "deploy": "firebase deploy",
     "example": "src/config/run_example.sh",
     "start": "cd src/examples && NODE_ENV=development ../../node_modules/.bin/ts-node config/fuse.ts",
     "test": "npx jest"
