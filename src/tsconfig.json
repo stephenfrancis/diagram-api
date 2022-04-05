@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
     "lib": ["es2015", "dom"],
-    "module": "commonjs",
+    "module": "esnext",
     "outDir": "../build/",
     "target": "es5"
   },
